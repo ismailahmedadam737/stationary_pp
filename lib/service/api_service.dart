@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 // =========================================================================
 // SETUP-KA IP-GA CENTRAL-KA AH (Halkan kaliya ka beddel haddii IP-gu isbeddelo)
 // =========================================================================
-const String globalBaseUrl = "http://localhost:3000/api";
+const String globalBaseUrl = "https://stationary-backend-6fh1.onrender.com";
 
 // =========================================================================
 // 1. QAYBTA LOGIN (AUTH) - ACTIVE ✅
@@ -42,7 +42,6 @@ class AuthApiService {
 class UserApiService {
   static const String baseUrl = "$globalBaseUrl/users";
 
-  // 🔹 GET ALL USERS
   static Future<List> getUsers() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -57,7 +56,6 @@ class UserApiService {
     }
   }
 
-  // 🔹 ADD USER
   static Future<void> addUser(String username, String password, String role) async {
     try {
       final res = await http.post(
@@ -81,7 +79,6 @@ class UserApiService {
     }
   }
 
-  // 🔹 DELETE USER
   static Future<void> deleteUser(int id) async {
     try {
       final res = await http.delete(Uri.parse("$baseUrl/$id"));
@@ -139,7 +136,6 @@ class FinanceApiService {
     }
   }
 
-  // 🔹 DELETE TRANSACTION
   static Future<void> deleteTransaction(int id) async {
     try {
       final res = await http.delete(Uri.parse("$baseUrl/$id"));
@@ -195,12 +191,11 @@ class SalaryApiService {
 }
 
 // =========================================================================
-// 5. QAYBTA CUSUB EE STOCK MANAGEMENT (TABLE: BOOKS) - FIXED 🛠️
+// 5. QAYBTA STOCK MANAGEMENT (BOOKS) - ACTIVE ✅
 // =========================================================================
 class StockApiService {
   static const String baseUrl = "$globalBaseUrl/stock";
 
-  // 🔹 SOO DAABAC ALAABTA (GET ALL BOOKS)
   static Future<List> getStock() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -215,7 +210,6 @@ class StockApiService {
     }
   }
 
-  // 🔹 KU DAR ALAAB CUSUB (ADD NEW BOOK)
   static Future<void> addBook(String title, String author, double price, int quantity) async {
     try {
       final res = await http.post(
@@ -240,7 +234,6 @@ class StockApiService {
     }
   }
 
-  // 🔹 TIRTIR ALAAB (DELETE BOOK)
   static Future<void> deleteBook(int id) async {
     try {
       final res = await http.delete(Uri.parse("$baseUrl/$id"));
@@ -257,12 +250,11 @@ class StockApiService {
 }
 
 // =========================================================================
-// 6. QAYBTA CUSUB EE CUSTOMERS (MACAAMIISHA) - FIXED 🛠️
+// 6. QAYBTA CUSTOMERS (MACAAMIISHA) - ACTIVE ✅
 // =========================================================================
 class CustomerApiService {
   static const String baseUrl = "$globalBaseUrl/customers";
 
-  // 🔹 GET ALL CUSTOMERS
   static Future<List> getCustomers() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -277,7 +269,6 @@ class CustomerApiService {
     }
   }
 
-  // 🔹 ADD CUSTOMER
   static Future<void> addCustomer(String name, String phone, String address) async {
     try {
       final res = await http.post(
@@ -301,7 +292,6 @@ class CustomerApiService {
     }
   }
 
-  // 🔹 DELETE CUSTOMER
   static Future<void> deleteCustomer(int id) async {
     try {
       final res = await http.delete(Uri.parse("$baseUrl/$id"));
@@ -318,17 +308,15 @@ class CustomerApiService {
 }
 
 // =========================================================================
-// 7. QAYBTA CUSUB EE SALES (IIBKA PRODUCT-KASTA) - FIXED 🛠️
+// 7. QAYBTA SALES (IIBKA) - ACTIVE ✅
 // =========================================================================
 class SalesApiService {
   static const String baseUrl = "$globalBaseUrl/sales";
 
-  // 🔹 GET ALL SALES
   static Future<List> getSales() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
       if (res.statusCode == 200) {
-        // Halkan waxaan ka dhignay mid toos u aqrin kara haddii uu List yahay ama uu ku jiro 'data' key.
         final decoded = jsonDecode(res.body);
         if (decoded is List) {
           return decoded;
@@ -345,7 +333,6 @@ class SalesApiService {
     }
   }
 
-  // 🔹 ADD NEW SALE (Iib cusub oo la diiwaangaliyo)
   static Future<void> addSale(String productName, double price, int quantity) async {
     try {
       final res = await http.post(
@@ -376,7 +363,6 @@ class SalesApiService {
 class EmployeeApiService {
   static const String baseUrl = "$globalBaseUrl/employees";
 
-  // 🔹 GET ALL EMPLOYEES
   static Future<List> getEmployees() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -391,7 +377,6 @@ class EmployeeApiService {
     }
   }
 
-  // 🔹 ADD EMPLOYEE
   static Future<void> addEmployee(String name, String phone, String position, double salary) async {
     try {
       final res = await http.post(
@@ -415,7 +400,6 @@ class EmployeeApiService {
     }
   }
 
-  // 🔹 DELETE EMPLOYEE
   static Future<void> deleteEmployee(int id) async {
     try {
       final res = await http.delete(Uri.parse("$baseUrl/$id"));
@@ -430,7 +414,6 @@ class EmployeeApiService {
     }
   }
 
-  // 🔹 UPDATE EMPLOYEE
   static Future<void> updateEmployee(int id, String name, String phone, String position, double salary) async {
     try {
       final res = await http.put(
