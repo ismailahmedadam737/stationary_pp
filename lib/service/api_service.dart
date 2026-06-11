@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 // =========================================================================
-// SETUP-KA IP-GA CENTRAL-KA AH (Halkan kaliya ka beddel haddii IP-gu isbeddelo)
+// SETUP-KA IP-GA CENTRAL-KA AH (Hadda wuxuu u jeedaa Render Server-kaaga)
 // =========================================================================
-const String globalBaseUrl = "https://stationary-backend-6fh1.onrender.com";
+const String globalBaseUrl = "https://stationary-backend-6fh1.onrender.com/api";
 
 // =========================================================================
 // 1. QAYBTA LOGIN (AUTH) - ACTIVE ✅
@@ -191,7 +191,7 @@ class SalaryApiService {
 }
 
 // =========================================================================
-// 5. QAYBTA STOCK MANAGEMENT (BOOKS) - ACTIVE ✅
+// 5. QAYBTA CUSUB EE STOCK MANAGEMENT (TABLE: BOOKS) - FIXED 🛠️
 // =========================================================================
 class StockApiService {
   static const String baseUrl = "$globalBaseUrl/stock";
@@ -250,7 +250,7 @@ class StockApiService {
 }
 
 // =========================================================================
-// 6. QAYBTA CUSTOMERS (MACAAMIISHA) - ACTIVE ✅
+// 6. QAYBTA CUSUB EE CUSTOMERS (MACAAMIISHA) - FIXED 🛠️
 // =========================================================================
 class CustomerApiService {
   static const String baseUrl = "$globalBaseUrl/customers";
@@ -308,7 +308,7 @@ class CustomerApiService {
 }
 
 // =========================================================================
-// 7. QAYBTA SALES (IIBKA) - ACTIVE ✅
+// 7. QAYBTA CUSUB EE SALES (IIBKA PRODUCT-KASTA) - FIXED 🛠️
 // =========================================================================
 class SalesApiService {
   static const String baseUrl = "$globalBaseUrl/sales";
