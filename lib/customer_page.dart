@@ -2,10 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// --------------------
-// Customer API Service
-// --------------------
 class CustomerApiService {
+  // Waxaan u beddelnay IP-gaaga rasmiga ah si uu ugu xidhmo server-ka dhabta ah
   static const String baseUrl = "http://localhost:3000/api/customers";
 
   static Future<List> getCustomers() async {
@@ -57,9 +55,6 @@ class CustomerApiService {
   }
 }
 
-// --------------------
-// Customer Page
-// --------------------
 class CustomerPage extends StatefulWidget {
   const CustomerPage({super.key});
 
@@ -353,7 +348,6 @@ class _CustomerPageState extends State<CustomerPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Green Card (Registration)
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: const BoxDecoration(
@@ -388,8 +382,6 @@ class _CustomerPageState extends State<CustomerPage> {
                     ],
                   ),
                 ),
-
-                // --- SEARCH SECTION ---
                 Padding(
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 5),
                   child: TextField(
@@ -412,7 +404,6 @@ class _CustomerPageState extends State<CustomerPage> {
                     ),
                   ),
                 ),
-                // --
                 const Padding(
                   padding: EdgeInsets.only(top: 20, left: 20),
                   child: Align(
@@ -420,7 +411,6 @@ class _CustomerPageState extends State<CustomerPage> {
                     child: Text("CUSTOMER LIST", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
                   ),
                 ),
-                // Customer List
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),

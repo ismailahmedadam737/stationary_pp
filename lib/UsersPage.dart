@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stationary_app/service/api_service.dart';
-// Hubi in magaca file-ka ApiService uu sax yahay
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -17,7 +16,6 @@ class _UsersPageState extends State<UsersPage> {
   String _selectedRole = 'User';
   final List<String> _roles = ['User', 'Admin'];
 
-  // Liiska Users-ka oo hadda madhan (Database ayaa laga soo rarayaa)
   List<dynamic> _usersList = [];
   bool _isLoading = true;
 
@@ -26,10 +24,9 @@ class _UsersPageState extends State<UsersPage> {
   @override
   void initState() {
     super.initState();
-    _fetchUsers(); // Marka boggu kaco xogta keen
+    _fetchUsers();
   }
 
-  // 🔹 FUNCTION: Xogta ka keenaysa Database-ka
   Future<void> _fetchUsers() async {
     try {
       final data = await UserApiService.getUsers();
@@ -39,11 +36,10 @@ class _UsersPageState extends State<UsersPage> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      _showSnackBar("Khalad ayaa dhacay xogta lama keeni karo!");
+      _showSnackBar("An error occurred, data could not be fetched!");
     }
   }
 
-  // 🔹 FUNCTION: Keydinta User-ka cusub (Database)
   void _addUser() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -55,25 +51,56 @@ class _UsersPageState extends State<UsersPage> {
         
         _usernameController.clear();
         _passwordController.clear();
-        _showSnackBar("Isticmaalaha waa la diiwaangeliyey! ✅");
+        _showSnackBar("User registered successfully! ✅");
         
-        // Dib u soo rari liiska si uu kan cusub ugu soo biiro
         _fetchUsers(); 
       } catch (e) {
-        _showSnackBar("Username-ka waa la isticmaalay ama khalad baa jira!");
+        _showSnackBar("Username is already taken or an error occurred!");
       }
     }
   }
 
-  // 🔹 FUNCTION: Tirtirista User-ka
+  // Waxaan ku darnay pop-up digniin ah ka hor inta uusan tirtirin user-ka
   void _deleteUser(int id) async {
-    try {
-      await UserApiService.deleteUser(id);
-      _showSnackBar("User is deleted ✅");
-      _fetchUsers();
-    } catch (e) {
-      _showSnackBar("Waa la tirtiri waayey user-ka!");
-    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+              SizedBox(width: 10),
+              Text("Aler!", style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Text("Are you sure you want to delete this user?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Wuu ka laabanayaa
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                Navigator.pop(context); // Pop-up-ka ayuu xirayaa
+                try {
+                  await UserApiService.deleteUser(id);
+                  _showSnackBar("User is deleted ✅");
+                  _fetchUsers();
+                } catch (e) {
+                  _showSnackBar("Could not delete the user!");
+                }
+              },
+              child: const Text("Yes,Delete", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showSnackBar(String message) {
@@ -94,7 +121,6 @@ class _UsersPageState extends State<UsersPage> {
       ),
       body: Column(
         children: [
-          // --- QAYBTA DIIWAANGELINTA (Input Form) ---
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -156,7 +182,6 @@ class _UsersPageState extends State<UsersPage> {
             ),
           ),
 
-          // --- QAYBTA LIISKA USERS-KA ---
           const Padding(
             padding: EdgeInsets.only(top: 20, left: 20),
             child: Align(

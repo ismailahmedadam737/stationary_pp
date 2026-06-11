@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:stationary_app/service/api_service.dart';
-// Hubi in aad u innvoke garaysato halka ay ku jiraan API Services-kaaga
-// import 'package:your_app/services/api_services.dart'; 
+import 'package:stationary_app/customer_page.dart';
+import 'package:stationary_app/service/api_service.dart' hide CustomerApiService;
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -13,10 +12,8 @@ class ReportPage extends StatefulWidget {
 
 class _ReportPageState extends State<ReportPage> {
   
-  // 🔹 Habka xogta dhabta ah looga soo aqrinayo dhamaan API-yada hal mar
   Future<Map<String, dynamic>> _fetchGeneralReportData() async {
     try {
-      // Dhamaan API-yada oo wada socda ayaa la wada wacayaa iyadoo la sugayo (Parallel Fetch)
       final results = await Future.wait([
         CustomerApiService.getCustomers(),
         SalesApiService.getSales(),
@@ -29,7 +26,6 @@ class _ReportPageState extends State<ReportPage> {
       List transactions = results[2];
       List employees = results[3];
 
-      // 1. Xisaabi dakhliga (Income) iyo kharashka (Expense) ka yimid Finance
       double totalIncome = 0;
       double totalExpense = 0;
 
@@ -42,7 +38,6 @@ class _ReportPageState extends State<ReportPage> {
         }
       }
 
-      // Haddii aad doonayso in aad dakhliga iibka (Sales) ku darto xisaabta guud ee dakhliga:
       for (var sale in sales) {
         double price = double.tryParse(sale['price']?.toString() ?? '0') ?? 0.0;
         int qty = int.tryParse(sale['quantity']?.toString() ?? '1') ?? 1;
@@ -59,7 +54,6 @@ class _ReportPageState extends State<ReportPage> {
       };
     } catch (e) {
       print("REPORT FETCH ERROR: $e");
-      // Haddii uu qalad dhaco, soo celi xog eber ah si uusan app-ku u hakan
       return {
         'customerCount': 0,
         'salesCount': 0,
@@ -88,20 +82,17 @@ class _ReportPageState extends State<ReportPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white, size: 28),
       ),
-      
-      // 🔹 Isticmaalka FutureBuilder si xogta loogu soo bandhigo UI-ga markay diyaar noqoto
       body: FutureBuilder<Map<String, dynamic>>(
         future: _fetchGeneralReportData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Qalad ayaa dhacay: ${snapshot.error}"));
+            return Center(child: Text("An error occurred: ${snapshot.error}"));
           } else if (!snapshot.hasData) {
-            return const Center(child: Text("Xog la heli karo ma jirto"));
+            return const Center(child: Text("No data available"));
           }
 
-          // Xogta dhabta ah ee la soo akhriyey
           final data = snapshot.data!;
           int customerCount = data['customerCount'];
           int salesCount = data['salesCount'];
@@ -118,12 +109,11 @@ class _ReportPageState extends State<ReportPage> {
               children: [
                 const SizedBox(height: 10),
                 const Text(
-                  "General System Data",
+                  "General Report",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo),
                 ),
                 const SizedBox(height: 20),
 
-                // 1. FOUR CARDS ROW (Xogta dhabta ah ee halkan lagu shubay)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
@@ -138,16 +128,14 @@ class _ReportPageState extends State<ReportPage> {
                 ),
                 const SizedBox(height: 30),
 
-                // 2. CHARTS SECTION
                 const Text(
-                  "BUSINESS GROWTH (CHARTS)",
+                  "BUSINESS GROWTH",
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
                 ),
                 const SizedBox(height: 12),
                 _buildLineChartCard(),
                 const SizedBox(height: 30),
 
-                // 3. DISTRIBUTION SECTION (Xogta dhabta ah ee Pie Chart-ka)
                 const Text(
                   "FINANCIAL DISTRIBUTION",
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
@@ -163,7 +151,6 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  // Widget to build each of the top 4 cards
   Widget _buildReportCard(String title, String value, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -202,7 +189,6 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  // Widget for the Line Chart (Wuxuu ahaan karaa static ama mustaqbalka xog bishle ah ayaad ku xiri kartaa)
   Widget _buildLineChartCard() {
     return Container(
       height: 250,
@@ -245,11 +231,9 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  // 🔹 Widget-ka Pie Chart-ka oo hadda xogta dhabta ah ee dakhliga iyo kharashka ku salaysan
   Widget _buildDistributionCard(double income, double expense, double customers) {
     double total = income + expense + customers;
     
-    // Ka hor tag in eber loo qaybiyo (Division by zero)
     double incomePercent = total > 0 ? (income / total) * 100 : 33.3;
     double expensePercent = total > 0 ? (expense / total) * 100 : 33.3;
     double customerPercent = total > 0 ? (customers / total) * 100 : 33.3;

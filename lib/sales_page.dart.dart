@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:typed_data'; 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:stationary_app/SalesHistoryPage.dart';
+import 'package:pdf/pdf.dart'; 
+import 'package:pdf/widgets.dart' as pw; 
+import 'package:printing/printing.dart'; 
 
-// ⬇️ BACKEND TEAM: BOOKS API SERVICE ⬇️
 class BookApiService {
   static const String baseUrl = "http://localhost:3000/api/books";
 
@@ -23,7 +26,6 @@ class BookApiService {
   }
 }
 
-// ⬇️ BACKEND TEAM: FINANCE API SERVICE ⬇️
 class FinanceApiService {
   static const String baseUrl = "http://localhost:3000/api/finance";
 
@@ -42,17 +44,15 @@ class FinanceApiService {
   }
 }
 
-// ⬇️ BACKEND TEAM: SALES API SERVICE ⬇️
 class SalesApiService {
   static const String baseUrl = "http://localhost:3000/api/sales";
 
-  // Function 1: Loogu talogalay in iibka maanta la soo akhriyo
   static Future<List> getSales() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
       if (res.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(res.body);
-        return responseData['data'] ?? []; // Wuxuu soo celinayaa liiska iibka dhabta ah
+        return responseData['data'] ?? []; 
       }
       return [];
     } catch (e) {
@@ -61,7 +61,6 @@ class SalesApiService {
     }
   }
 
-  // Function 2: Loogu talogalay in iib cusub lagu kaydiyo DB
   static Future<bool> saveNewSale(Map<String, dynamic> saleData) async {
     try {
       final res = await http.post(
@@ -89,9 +88,14 @@ class SalesApiService {
   }
 }
 
-// ==========================================
-// 1. MAIN SALES PAGE (DAILY SALES CONTROL)
-// ==========================================
+class SaleItemRow {
+  String? selectedBook;
+  final qtyController = TextEditingController();
+  final priceController = TextEditingController();
+
+  SaleItemRow({this.selectedBook});
+}
+
 class SalesPage extends StatefulWidget {
   const SalesPage({super.key});
 
@@ -100,7 +104,6 @@ class SalesPage extends StatefulWidget {
 }
 
 class _SalesPageState extends State<SalesPage> {
-  // Waxaa laga dhigay firfirconi si uu database-ka xogta uga soo qaato
   List<dynamic> _salesItems = []; 
 
   double income = 0.0;
@@ -114,7 +117,7 @@ class _SalesPageState extends State<SalesPage> {
     super.initState();
     _loadInitialBooks();
     _loadFinanceData(); 
-    _loadTodaySales(); // 🆕 Halkan ku dar si uu u rido marka bogga la soo furo
+    _loadTodaySales(); 
   }
 
   void _loadInitialBooks() {
@@ -127,12 +130,11 @@ class _SalesPageState extends State<SalesPage> {
     });
   }
 
-  // 🆕 Function-kan cusub wuxuu iibka ka soo dhex helayaa Database-ka rasmiga ah
   Future<void> _loadTodaySales() async {
     List sales = await SalesApiService.getSales();
     if (mounted) {
       setState(() {
-        _salesItems = sales; // Halkan xogtii kumeel-gaadhka ahayd waxaa beddelay DB rasmiga ah
+        _salesItems = sales; 
       });
     }
   }
@@ -244,7 +246,6 @@ class _SalesPageState extends State<SalesPage> {
                           itemBuilder: (context, index) {
                             final item = _salesItems[index];
                             
-                            // Database total-ka isaga ayaa xisaabiya marka halkan xisaabtiisa ku dar UI-ga
                             double itemQty = double.tryParse(item['qty'].toString()) ?? 0;
                             double itemPrice = double.tryParse(item['price'].toString()) ?? 0;
                             double itemDiscount = double.tryParse(item['discount'].toString()) ?? 0;
@@ -305,24 +306,11 @@ class _SalesPageState extends State<SalesPage> {
   }
 
   void _showAddSaleDialog(BuildContext context) {
-    final qtyController = TextEditingController();
-    final priceController = TextEditingController();
+    List<SaleItemRow> itemsList = [SaleItemRow()];
+
     final totalController = TextEditingController();
     final discountController = TextEditingController();
     final debtController = TextEditingController();
-
-    void calculateTotal() {
-      double qty = double.tryParse(qtyController.text) ?? 0;
-      double price = double.tryParse(priceController.text) ?? 0;
-      double discount = double.tryParse(discountController.text) ?? 0;
-      
-      double total = (qty * price) - discount;
-      totalController.text = total > 0 ? total.toStringAsFixed(2) : "";
-    }
-
-    qtyController.addListener(calculateTotal);
-    priceController.addListener(calculateTotal);
-    discountController.addListener(calculateTotal);
 
     showDialog(
       context: context,
@@ -331,10 +319,26 @@ class _SalesPageState extends State<SalesPage> {
           future: BookApiService.getBookNames(),
           builder: (context, snapshot) {
             List<String> booksList = snapshot.data ?? _fetchedBooks;
-            String? selectedBook = booksList.isNotEmpty ? booksList.first : null;
+            
+            if (itemsList[0].selectedBook == null && booksList.isNotEmpty) {
+              itemsList[0].selectedBook = booksList.first;
+            }
 
             return StatefulBuilder(
               builder: (context, setDialogState) {
+
+                void calculateTotal() {
+                  double grandTotal = 0;
+                  for (var item in itemsList) {
+                    double qty = double.tryParse(item.qtyController.text) ?? 0;
+                    double price = double.tryParse(item.priceController.text) ?? 0;
+                    grandTotal += (qty * price);
+                  }
+                  double discount = double.tryParse(discountController.text) ?? 0;
+                  double finalTotal = grandTotal - discount;
+                  totalController.text = finalTotal > 0 ? finalTotal.toStringAsFixed(2) : "";
+                }
+
                 return AlertDialog(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                   backgroundColor: Colors.white,
@@ -351,31 +355,95 @@ class _SalesPageState extends State<SalesPage> {
                         )
                       : SingleChildScrollView(
                           child: SizedBox(
-                            width: 380,
+                            width: 420,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                DropdownButtonFormField<String>(
-                                  value: selectedBook,
-                                  decoration: _inputDecoration("Select Book", Icons.book),
-                                  items: booksList
-                                      .map((label) => DropdownMenuItem(value: label, child: Text(label)))
-                                      .toList(),
-                                  onChanged: (value) {
-                                    setDialogState(() {
-                                      selectedBook = value;
-                                    });
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: itemsList.length,
+                                  itemBuilder: (context, index) {
+                                    final row = itemsList[index];
+                                    
+                                    row.qtyController.removeListener(calculateTotal);
+                                    row.priceController.removeListener(calculateTotal);
+                                    row.qtyController.addListener(calculateTotal);
+                                    row.priceController.addListener(calculateTotal);
+
+                                   return Container(
+  margin: const EdgeInsets.only(bottom: 15),
+  padding: const EdgeInsets.all(10),
+  decoration: BoxDecoration(
+    color: Colors.grey[50],
+    borderRadius: BorderRadius.circular(15),
+    border: Border.all(color: Colors.grey[200]!),
+  ),
+  child: Column( // Isticmaal Column halkii aad Row isticmaali lahayd si uusan isugu dhicin
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Item #${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[800])),
+          if (itemsList.length > 1)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              onPressed: () {
+                setDialogState(() {
+                  itemsList.removeAt(index);
+                  calculateTotal();
+                });
+              },
+            )
+        ],
+      ),
+      const SizedBox(height: 5),
+      // Halkan ka saar Expanded-ka haddii uu Column yahay, kaliya isticmaal Container ama si toos ah
+      DropdownButtonFormField<String>(
+        isExpanded: true,
+        value: row.selectedBook,
+        decoration: _inputDecoration("Select Book", Icons.book),
+        items: booksList
+            .map((label) => DropdownMenuItem(value: label, child: Text(label, overflow: TextOverflow.ellipsis)))
+            .toList(),
+        onChanged: (value) {
+          setDialogState(() {
+            row.selectedBook = value;
+          });
+        },
+      ),
+      const SizedBox(height: 10),
+      Row( // Qaybtan hoose ee Qty iyo Price waa inay xor u ahaadaan
+        children: [
+          Expanded(child: TextField(controller: row.qtyController, keyboardType: TextInputType.number, decoration: _inputDecoration("Qty", Icons.production_quantity_limits))),
+          const SizedBox(width: 10),
+          Expanded(child: TextField(controller: row.priceController, keyboardType: TextInputType.number, decoration: _inputDecoration("Price (\$)", Icons.attach_money))),
+        ],
+      ),
+    ],
+  ),
+);
                                   },
                                 ),
-                                const SizedBox(height: 15),
-                                Row(
-                                  children: [
-                                    Expanded(child: TextField(controller: qtyController, keyboardType: TextInputType.number, decoration: _inputDecoration("Qty", Icons.production_quantity_limits))),
-                                    const SizedBox(width: 10),
-                                    Expanded(child: TextField(controller: priceController, keyboardType: TextInputType.number, decoration: _inputDecoration("Price (\$)", Icons.attach_money))),
-                                  ],
+                                
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton.icon(
+                                    onPressed: () {
+                                      setDialogState(() {
+                                        String? defaultBook = booksList.isNotEmpty ? booksList.first : null;
+                                        itemsList.add(SaleItemRow(selectedBook: defaultBook));
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    label: const Text("Add Another Item"),
+                                    style: TextButton.styleFrom(foregroundColor: Colors.blue[800]),
+                                  ),
                                 ),
-                                const SizedBox(height: 15),
+                                const Divider(),
+                                const SizedBox(height: 5),
+                                
                                 TextField(
                                   controller: totalController,
                                   readOnly: true,
@@ -384,7 +452,12 @@ class _SalesPageState extends State<SalesPage> {
                                 const SizedBox(height: 15),
                                 Row(
                                   children: [
-                                    Expanded(child: TextField(controller: discountController, keyboardType: TextInputType.number, decoration: _inputDecoration("Discount", Icons.percent))),
+                                    Expanded(child: TextField(
+                                      controller: discountController, 
+                                      keyboardType: TextInputType.number, 
+                                      decoration: _inputDecoration("Discount", Icons.percent),
+                                      onChanged: (_) => calculateTotal(),
+                                    )),
                                     const SizedBox(width: 10),
                                     Expanded(child: TextField(controller: debtController, keyboardType: TextInputType.number, decoration: _inputDecoration("Debt", Icons.money_off))),
                                   ],
@@ -400,25 +473,33 @@ class _SalesPageState extends State<SalesPage> {
                         backgroundColor: Colors.blue[800], 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
                       ),
-                      onPressed: selectedBook == null ? null : () async {
-                        if (qtyController.text.isNotEmpty && priceController.text.isNotEmpty) {
-                          
-                          // Diyaari xogta loo dirayo Backend-ka
+                      onPressed: itemsList.any((element) => element.selectedBook == null) ? null : () async {
+                        
+                        bool valid = true;
+                        for (var item in itemsList) {
+                          if (item.qtyController.text.isEmpty || item.priceController.text.isEmpty) {
+                            valid = false;
+                          }
+                        }
+
+                        if (valid) {
+                          String combinedTitles = itemsList.map((e) => e.selectedBook).join(", ");
+                          int totalQty = itemsList.fold(0, (sum, item) => sum + (int.tryParse(item.qtyController.text) ?? 0));
+                          double totalPrice = itemsList.fold(0.0, (sum, item) => sum + ((double.tryParse(item.priceController.text) ?? 0) * (int.tryParse(item.qtyController.text) ?? 0)));
+
                           final Map<String, dynamic> saleData = {
-                            'book_title': selectedBook,
-                            'qty': int.parse(qtyController.text),
-                            'price': double.parse(priceController.text),
+                            'book_title': combinedTitles,
+                            'qty': totalQty,
+                            'price': totalQty > 0 ? (totalPrice / totalQty) : 0.0, 
                             'discount': double.tryParse(discountController.text) ?? 0.0,
                             'debt': double.tryParse(debtController.text) ?? 0.0,
                             'invoice_no': DateTime.now().millisecondsSinceEpoch.toString().substring(7),
                           };
 
-                          // U dir Database-ka oo sug inta uu ka jawaabayo
                           bool success = await SalesApiService.saveNewSale(saleData);
 
                           if (success) {
                             if (mounted) {
-                              // Hadda si toos ah ayaan xogta DB uga soo aqrinaynaa si uusan u dhiman liisku
                               _loadTodaySales(); 
                               _loadFinanceData(); 
                               Navigator.pop(context);
@@ -434,6 +515,10 @@ class _SalesPageState extends State<SalesPage> {
                               );
                             }
                           }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Fadlan buuxi Qty iyo Price-ka dhamaan alaabta! ⚠️"), backgroundColor: Colors.orange),
+                          );
                         }
                       },
                       child: const Text("Save Sale", style: TextStyle(color: Colors.white)),
@@ -459,87 +544,228 @@ class _SalesPageState extends State<SalesPage> {
     );
   }
 
+  // =========================================================================
+  // 🛠️ INVOICE GENERATION & PRINT FUNCTION (DGAAR-GAAR U KALA JABINAYA)
+  // =========================================================================
   void _openInvoicePage(BuildContext context, Map<String, dynamic> item) {
-    double itemQty = double.tryParse(item['qty'].toString()) ?? 0;
-    double itemPrice = double.tryParse(item['price'].toString()) ?? 0;
-    double itemDiscount = double.tryParse(item['discount'].toString()) ?? 0;
-    double calculatedTotal = (itemQty * itemPrice) - itemDiscount;
+    final String invoiceNo = item['invoice_no'] ?? DateTime.now().millisecondsSinceEpoch.toString().substring(7);
+    final String invoiceDate = DateTime.now().toString().substring(0, 10);
+    final double itemDiscount = double.tryParse(item['discount'].toString()) ?? 0.0;
+    final double itemDebt = double.tryParse(item['debt'].toString()) ?? 0.0;
+
+    // Halkan waxaan ku kala jabinaynaa magacyada alaabaha haddii ay ku jiraan comma (, )
+    final String fullTitle = item['book_title'] ?? item['name'] ?? item['product_name'] ?? 'Unknown';
+    List<String> explicitItems = fullTitle.split(', ').where((element) => element.isNotEmpty).toList();
+
+    // Maadaama backend-kii hore uu hal qty iyo hal price kaydinayay, waxaan u qaybinaynaa 
+    // alaabaha si siman ama loogu muujiyo qaab safaf ah rasiidka dhexdiisa.
+    double baseQty = double.tryParse(item['qty'].toString()) ?? 1;
+    double basePrice = double.tryParse(item['price'].toString()) ?? 0;
+    
+    // Haddii ay alaabo badan yihiin, qty-ga guud waxaan u qaybinaynaa inta shay ee iibka ku jirta
+    double qtyPerItem = explicitItems.length > 1 ? (baseQty / explicitItems.length).ceilToDouble() : baseQty;
+    double pricePerItem = basePrice; 
+
+    Future<Uint8List> generateInvoicePdf(PdfPageFormat format) async {
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.roll80, 
+          margin: const pw.EdgeInsets.all(12),
+          build: (pw.Context context) {
+            double subTotalSum = 0.0;
+            List<pw.TableRow> tableRows = [];
+
+            // 1. Ku darista Header-ka Shaxda (Table Header)
+            tableRows.add(
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: PdfColors.lightBlue100),
+                children: [
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text("No", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize:6.5))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text("Item Name", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text("Qty", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5), textAlign: pw.TextAlign.center)),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text("Price", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5), textAlign: pw.TextAlign.right)),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text("Amount", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8), textAlign: pw.TextAlign.right)),
+                ],
+              ),
+            );
+
+            // 2. Wareejinta dynamic-ga ah si shay kasta saf u gaar ah u yeesho
+            for (int i = 0; i < explicitItems.length; i++) {
+              double currentAmount = qtyPerItem * pricePerItem;
+              subTotalSum += currentAmount;
+
+              tableRows.add(
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2), child: pw.Text("${i + 1}", style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2), child: pw.Text(explicitItems[i], style: const pw.TextStyle(fontSize: 8.5))),
+                    pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2), child: pw.Text("${qtyPerItem.toInt()}", style: const pw.TextStyle(fontSize: 8.5), textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2), child: pw.Text("\$${pricePerItem.toStringAsFixed(2)}", style: const pw.TextStyle(fontSize: 8.5), textAlign: pw.TextAlign.right)),
+                    pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2), child: pw.Text("\$${currentAmount.toStringAsFixed(2)}", style: const pw.TextStyle(fontSize: 8.5), textAlign: pw.TextAlign.right)),
+                  ],
+                ),
+              );
+            }
+
+            double grandFinalTotal = subTotalSum - itemDiscount;
+
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Header-ka Ganacsiga
+                pw.Center(
+                  child: pw.Column(
+                    children: [
+                      pw.Text(
+                        "QALOON STATIONARY", 
+                        style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold, color: PdfColors.lightBlue900),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        "Tel: 063-666337 // 063-4688077", 
+                        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.black),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                      pw.Text(
+                        "Hargeisa, Somaliland", 
+                        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.black),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                pw.SizedBox(height: 6),
+                pw.Divider(thickness: 1, color: PdfColors.grey300),
+                pw.SizedBox(height: 2),
+
+                pw.Center(
+                  child: pw.Text(
+                    "INVOICE", 
+                    style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.red),
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text("Invoice No: #$invoiceNo", style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.black)),
+                pw.Text("Date: $invoiceDate", style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.black)),
+                pw.SizedBox(height: 6),
+
+                // Shaxda Nadiifta ah ee Alaabta (Dynamic Table)
+                pw.Table(
+                  columnWidths: {
+                    0: const pw.FlexColumnWidth(0.6),  // No
+                    1: const pw.FlexColumnWidth(3.2),  // Item Name
+                    2: const pw.FlexColumnWidth(0.8),  // Qty
+                    3: const pw.FlexColumnWidth(1.2),  // Price
+                    4: const pw.FlexColumnWidth(1.4),  // Amount
+                  },
+                  children: tableRows,
+                ),
+                
+                pw.Divider(thickness: 1, color: PdfColors.black),
+                
+                // Qaybta Xisaabaadka hoose (Summary)
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text("Subtotal:", style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text("\$${subTotalSum.toStringAsFixed(2)}", style: const pw.TextStyle(fontSize: 9)),
+                  ],
+                ),
+                if (itemDiscount > 0) ...[
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text("Discount:", style: const pw.TextStyle(fontSize: 9, color: PdfColors.red700)),
+                      pw.Text("-\$${itemDiscount.toStringAsFixed(2)}", style: const pw.TextStyle(fontSize: 9, color: PdfColors.red700)),
+                    ],
+                  ),
+                ],
+                if (itemDebt > 0) ...[
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text("Debt (Haraa):", style: const pw.TextStyle(fontSize: 9, color: PdfColors.orange700)),
+                      pw.Text("\$${itemDebt.toStringAsFixed(2)}", style: const pw.TextStyle(fontSize: 9, color: PdfColors.orange700)),
+                    ],
+                  ),
+                ],
+
+                pw.SizedBox(height: 4),
+                pw.Divider(thickness: 1, color: PdfColors.grey400),
+                pw.SizedBox(height: 2),
+
+                // GRAND TOTAL (Halkii mar lagu soo qoray si weyn oo qurux leh)
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.end, 
+                  children: [
+                    pw.Text("TOTAL: ", style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.lightBlue900)),
+                    pw.Text("\$${grandFinalTotal.toStringAsFixed(2)}", style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.lightBlue900)),
+                  ],
+                ),
+
+                pw.SizedBox(height: 15),
+                
+                pw.Center(
+                  child: pw.Text(
+                    "Thank you for your business!!", 
+                    style: pw.TextStyle(fontSize: 8.5, fontStyle: pw.FontStyle.italic),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      return pdf.save(); 
+    }
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
-          backgroundColor: Colors.grey[100], 
           appBar: AppBar(
-            title: const Text("PRINT INVOICE", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.black87),
-          ),
-          body: SingleChildScrollView(
-            child: Center(
-              child: Container(
-                width: 500,
-                padding: const EdgeInsets.all(30),
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: Column(
-                        children: [
-                          Text("QALOON STATIONARY", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-                          const Text("Tel: 063-666337 // 063-4688077", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                          const Divider(height: 30),
-                        ],
-                      ),
-                    ),
-                    const Center(child: Text("INVOICE", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red))),
-                    const SizedBox(height: 15),
-                    Text("Date: ${DateTime.now().toString().substring(0, 10)}"),
-                    const SizedBox(height: 25),
-                    Table(
-                      children: [
-                        TableRow(
-                          decoration: BoxDecoration(color: Colors.grey[100]),
-                          children: const [
-                            Padding(padding: EdgeInsets.all(8.0), child: Text("Item", style: TextStyle(fontWeight: FontWeight.bold))),
-                            Padding(padding: EdgeInsets.all(8.0), child: Text("Qty", style: TextStyle(fontWeight: FontWeight.bold))),
-                            Padding(padding: EdgeInsets.all(8.0), child: Text("Price", style: TextStyle(fontWeight: FontWeight.bold))),
-                            Padding(padding: EdgeInsets.all(8.0), child: Text("Total", style: TextStyle(fontWeight: FontWeight.bold))),
-                          ]
-                        ),
-                        TableRow(
-                          children: [
-                            Padding(padding: const EdgeInsets.all(8.0), child: Text(item['book_title'] ?? item['name'] ?? item['product_name'] ?? 'Unknown')),
-                            Padding(padding: const EdgeInsets.all(8.0), child: Text("${item['qty'] ?? 0}")),
-                            Padding(padding: const EdgeInsets.all(8.0), child: Text("\$${item['price'] ?? 0}")),
-                            Padding(padding: const EdgeInsets.all(8.0), child: Text("\$${calculatedTotal.toStringAsFixed(2)}")),
-                          ]
-                        )
-                      ],
-                    ),
-                    const Divider(),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("Discount:"), Text("\$${item['discount'] ?? 0}")]),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("Debt:"), Text("\$${item['debt'] ?? 0}")]),
-                    const Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("GRAND TOTAL:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-                        Text("\$${calculatedTotal.toStringAsFixed(2)}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-                      ],
-                    ),
-                  ],
-                ),
+            title: const Text("PRINT RECEIPT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            backgroundColor: Colors.blue[800],
+            iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.print_rounded, color: Colors.white, size: 26),
+                tooltip: "Print Invoice",
+                onPressed: () async {
+                  Uint8List pdfBytes = await generateInvoicePdf(PdfPageFormat.roll80);
+                  await Printing.layoutPdf(
+                    onLayout: (PdfPageFormat format) async => pdfBytes,
+                    name: 'Receipt_$invoiceNo',
+                  );
+                },
               ),
-            ),
+              IconButton(
+                icon: const Icon(Icons.download, color: Colors.white, size: 26),
+                tooltip: "Download PDF",
+                onPressed: () async {
+                  Uint8List pdfBytes = await generateInvoicePdf(PdfPageFormat.roll80);
+                  await Printing.sharePdf(
+                    bytes: pdfBytes,
+                    filename: 'Receipt_$invoiceNo.pdf',
+                  );
+                },
+              ),
+              const SizedBox(width: 10),
+            ],
+          ),
+          body: PdfPreview(
+            build: (format) => generateInvoicePdf(format), 
+            allowPrinting: false, 
+            allowSharing: false,  
+            canChangePageFormat: false,
+            canDebug: false,
           ),
         ),
       ),

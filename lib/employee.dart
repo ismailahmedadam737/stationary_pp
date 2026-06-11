@@ -11,13 +11,15 @@ class EmployeePage extends StatefulWidget {
 
 class _EmployeePageState extends State<EmployeePage> {
   List<Map<String, String>> _employees = [];
-  List<Map<String, String>> _filteredEmployees = []; // Liiska raadinta
-  
+  List<Map<String, String>> _filteredEmployees = []; 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _positionController = TextEditingController();
   final _salaryController = TextEditingController();
-  final _searchController = TextEditingController(); // Controller-ka raadinta
+  final _searchController = TextEditingController(); 
+
+  // IP-gaaga rasmiga ah ee server-ka
+  final String baseUrl = "http://localhost:3000/api/employees";
 
   @override
   void initState() {
@@ -25,9 +27,19 @@ class _EmployeePageState extends State<EmployeePage> {
     _fetchEmployees();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _positionController.dispose();
+    _salaryController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchEmployees() async {
     try {
-      final response = await http.get(Uri.parse("http://localhost:3000/api/employees"));
+      final response = await http.get(Uri.parse(baseUrl));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -38,7 +50,7 @@ class _EmployeePageState extends State<EmployeePage> {
             "position": e['position'].toString(),
             "salary": e['salary'].toString(),
           }).toList();
-          _filteredEmployees = _employees; // Marka hore dhamaan soo bandhig
+          _filteredEmployees = _employees; 
         });
       }
     } catch (e) {
@@ -46,7 +58,6 @@ class _EmployeePageState extends State<EmployeePage> {
     }
   }
 
-  // Shaqada raadinta (Filtering logic)
   void _filterEmployees(String query) {
     setState(() {
       _filteredEmployees = _employees
@@ -59,7 +70,7 @@ class _EmployeePageState extends State<EmployeePage> {
     if (_nameController.text.isNotEmpty && _salaryController.text.isNotEmpty) {
       try {
         final response = await http.post(
-          Uri.parse("http://localhost:3000/api/employees"),
+          Uri.parse(baseUrl),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({
             "name": _nameController.text,
@@ -93,7 +104,7 @@ class _EmployeePageState extends State<EmployeePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Update  the employee"),
+        title: const Text("Update the employee"),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -111,7 +122,7 @@ class _EmployeePageState extends State<EmployeePage> {
             onPressed: () async {
               try {
                 final response = await http.put(
-                  Uri.parse("http://localhost:3000/api/employees/${emp['id']}"),
+                  Uri.parse("$baseUrl/${emp['id']}"),
                   headers: {"Content-Type": "application/json"},
                   body: jsonEncode({
                     "name": nameEdit.text,
@@ -141,14 +152,14 @@ class _EmployeePageState extends State<EmployeePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Warning!"),
-        content: Text("are sure to delete $name?"),
+        content: Text("Are you sure to delete $name?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Maya")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               try {
-                final response = await http.delete(Uri.parse("http://localhost:3000/api/employees/$id"));
+                final response = await http.delete(Uri.parse("$baseUrl/$id"));
                 if (response.statusCode == 200) {
                   _fetchEmployees();
                   Navigator.pop(context);
@@ -260,8 +271,9 @@ class _EmployeePageState extends State<EmployeePage> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white), onPressed: () => Navigator.pop(context)),
-        title: const Text("EMPLOYEE REGISTRATION ", style: TextStyle(color: Colors.white)),
+        title: const Text("EMPLOYEE REGISTRATION", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         backgroundColor: Colors.teal,
+        centerTitle: true,
         elevation: 0,
       ),
       body: Column(
@@ -272,7 +284,7 @@ class _EmployeePageState extends State<EmployeePage> {
             decoration: const BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30))),
             child: Column(
               children: [
-                _buildInput(_nameController, "Employee Name ", Icons.person),
+                _buildInput(_nameController, "Employee Name", Icons.person),
                 const SizedBox(height: 10),
                 _buildInput(_phoneController, "Telephone Number", Icons.phone, inputType: TextInputType.phone),
                 const SizedBox(height: 10),
@@ -287,21 +299,21 @@ class _EmployeePageState extends State<EmployeePage> {
                 ElevatedButton.icon(
                   onPressed: _addEmployee,
                   icon: const Icon(Icons.person_add_alt_1, color: Colors.white),
-                  label: const Text("Add New Employee ", style: TextStyle(color: Colors.white)),
+                  label: const Text("Add New Employee", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700], minimumSize: const Size(double.infinity, 50)),
                 ),
               ],
             ),
           ),
           
-          // SEARCH SECTION (Intermediate)
+          // SEARCH SECTION 
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 15, 20, 5),
             child: TextField(
               controller: _searchController,
               onChanged: _filterEmployees,
               decoration: InputDecoration(
-                hintText: "Seaarch employee name...",
+                hintText: "Search employee name...",
                 prefixIcon: const Icon(Icons.search, color: Colors.teal),
                 filled: true,
                 fillColor: Colors.white,
@@ -317,13 +329,14 @@ class _EmployeePageState extends State<EmployeePage> {
               ),
             ),
           ),
-const Padding(
+          const Padding(
             padding: EdgeInsets.only(top: 20, left: 20),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text("EMPLOYEES LIST", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
             ),
           ),
+          
           // LIST SECTION
           Expanded(
             child: _filteredEmployees.isEmpty

@@ -94,10 +94,10 @@ class _SalaryPageState extends State<SalaryPage> {
         ? const Center(child: CircularProgressIndicator()) 
         : Column(
             children: [
-              // 1. Top Section (Form)
+              
               _buildTopForm(),
 
-              // 2. Bottom Section (History List)
+             
               const Padding(
                 padding: EdgeInsets.only(top: 20, left: 20, bottom: 10),
                 child: Align(
@@ -120,7 +120,6 @@ class _SalaryPageState extends State<SalaryPage> {
       ),
       child: Column(
         children: [
-          // Beautiful Dropdown
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),

@@ -15,8 +15,6 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
   bool _isLoading = true;
   final _searchController = TextEditingController();
 
-  // ⚠️ BACKEND ROUTE: Masiirka rasmiga ah ee iibka iyo taariikhda
-  // Haddii aad Emulator isticmaalayso 'localhost' ku baddal '10.0.2.2'
   final String _apiUrl = "http://localhost:3000/api/sales";
 
   @override
@@ -25,7 +23,6 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
     _fetchSalesHistory();
   }
 
-  // 1. Ka soo aqri xogta Database-ka (GET)
   Future<void> _fetchSalesHistory() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -36,7 +33,6 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
         final Map<String, dynamic> responseData = jsonDecode(res.body);
         List<dynamic> rawSales = responseData['data'] ?? [];
 
-        // ⏱️ SHAANDHAYNTA 30-KA MAALMOOD (BISHAN)
         final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
         
         List<dynamic> recentSales = rawSales.where((sale) {
@@ -68,8 +64,6 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
     }
   }
 
-  // 2. Tirtirista guud ee ka horreeyey 30 Maalmood (DELETE)
-  // 🟢 Hadda waxay si toos ah u wacaysaa /api/sales/bulk-delete ee backend-ka cusub
   Future<void> _clearOldSales() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -78,13 +72,12 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
       final res = await http.delete(Uri.parse("$_apiUrl/bulk-delete"));
       
       if (res.statusCode == 200) {
-        // Markay Database-ka ka tirtiranto, dib u soo cusboonaysii liiska UI-ga
         await _fetchSalesHistory();
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Waa la wada tirtiray xogtii iibka ee ka horreeysay 30 maalmood! 🗑️"), 
+              content: Text("All sales data older than 30 days has been deleted! 🗑️"), 
               backgroundColor: Colors.redAccent
             ),
           );
@@ -93,7 +86,7 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
         if (mounted) {
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Tirtiristii way fashilantay! ❌"), backgroundColor: Colors.orange),
+            const SnackBar(content: Text("Deletion failed! ❌"), backgroundColor: Colors.orange),
           );
         }
       }
@@ -103,7 +96,6 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
     }
   }
 
-  // 3. Shaandhaynta (Search)
   void _filterSales(String query) {
     setState(() {
       _filteredSales = _allSales.where((sale) {
@@ -131,27 +123,27 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            tooltip: "Dib u cusboonaysii",
+            tooltip: "Refresh",
             onPressed: _fetchSalesHistory,
           ),
           IconButton(
             icon: const Icon(Icons.auto_delete_outlined, color: Colors.white, size: 26),
-            tooltip: "Tirtir iibkii 30 kii maalmood ee udambeeyey ",
+            tooltip: "Delete sales from the last 30 days",
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  title: const Text("Xaqiijinta Tirtirista"),
-                  content: const Text("Ma hubaal inaad rabto inaad tirtirto dhammaan iibka ka weyn 30 maalmood?"),
+                  title: const Text("Confirm Deletion"),
+                  content: const Text("Are you sure you want to delete all sales older than 30 days?"),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text("Maya")),
+                    TextButton(onPressed: () => Navigator.pop(context), child: const Text("No")),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                         _clearOldSales();
                       },
-                      child: const Text("Haa", style: TextStyle(color: Colors.red)),
+                      child: const Text("Yes", style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),
@@ -201,7 +193,6 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
                                 String rawDate = (sale['created_at'] ?? sale['sale_date'] ?? '').toString();
                                 String date = rawDate.length > 10 ? rawDate.substring(0, 10) : rawDate;
 
-                                // 🧮 Xisaabi wadarta guud ee shay kasta (Qty * Price - Discount)
                                 double qty = double.tryParse(sale['qty'].toString()) ?? 0;
                                 double price = double.tryParse(sale['price'].toString()) ?? 0;
                                 double discount = double.tryParse(sale['discount'].toString()) ?? 0;

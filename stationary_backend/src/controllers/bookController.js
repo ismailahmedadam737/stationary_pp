@@ -10,36 +10,36 @@ const getBooks = async (req, res) => {
   }
 };
 
-// Add a new book
+// Add a new book or item
 const addBook = async (req, res) => {
   try {
-    const { title, author, price } = req.body;
+    const { title, author, price, type } = req.body; // Waxaa lagu daray type
     if (!title || !price) {
       return res.status(400).json({ message: 'Title and price are required' });
     }
-    const newBook = await Book.createBook(title, author, price);
+    const newBook = await Book.createBook(title, author, price, type);
     res.status(201).json(newBook);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// Update a book
+// Update a book or item
 const updateBook = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, author, price } = req.body;
+    const { title, author, price, type } = req.body; // Waxaa lagu daray type
     if (!title || !price) {
       return res.status(400).json({ message: 'Title and price are required' });
     }
-    const updatedBook = await Book.updateBook(id, title, author, price);
+    const updatedBook = await Book.updateBook(id, title, author, price, type);
     res.json(updatedBook);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// Delete a book
+// Delete a book or item
 const deleteBook = async (req, res) => {
   try {
     const { id } = req.params;

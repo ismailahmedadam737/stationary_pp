@@ -9,7 +9,7 @@ class FinancePage extends StatefulWidget {
 }
 
 class _FinancePageState extends State<FinancePage> {
-  List<dynamic> _transactions = []; // Waxaan ka dhignay dynamic si uu API-ga ula socdo
+  List<dynamic> _transactions = []; // Made dynamic to synchronize with the API
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   String _transactionType = 'Income';
@@ -18,10 +18,10 @@ class _FinancePageState extends State<FinancePage> {
   @override
   void initState() {
     super.initState();
-    _loadData(); // Markuu boggu furmo xogta database-ka ka soo kaxay
+    _loadData(); // Fetch data from database when the page opens
   }
 
-  // 🔹 Function-ka xogta ka soo kaxaynaya Database-ka
+  // 🔹 Function to fetch data from the Database
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
@@ -46,7 +46,7 @@ class _FinancePageState extends State<FinancePage> {
 
   double get _netProfit => _totalIncome - _totalExpenses;
 
-  // 🔹 Function-ka ku daraya xogta (Database-ka ayuu hadda u dirayaa)
+  // 🔹 Function to add data (Sends it to the Database)
   void _addTransaction() async {
     double? amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) return;
@@ -61,17 +61,17 @@ class _FinancePageState extends State<FinancePage> {
       _amountController.clear();
       _noteController.clear();
       Navigator.pop(context);
-      _loadData(); // Xogta dib u soo cusboonaysii (Refresh)
+      _loadData(); // Refresh the data
     } catch (e) {
       print("Error adding: $e");
     }
   }
 
-  // 🔹 Function-ka tirtiraya xogta (Database-ka ayuu ka tirtirayaa)
+  // 🔹 Function to delete data (Deletes it from the Database)
   void _deleteTransaction(int id) async {
     try {
       await FinanceApiService.deleteTransaction(id);
-      _loadData(); // Xogta dib u soo cusboonaysii
+      _loadData(); // Refresh the data
     } catch (e) {
       print("Error deleting: $e");
     }
@@ -88,7 +88,7 @@ class _FinancePageState extends State<FinancePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("DIWANGALI XOGTA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue[900])),
+              Text("RECORD TRANSACTION", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue[900])),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -102,12 +102,12 @@ class _FinancePageState extends State<FinancePage> {
               TextField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Lacagta (Amount)", border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
+                decoration: InputDecoration(labelText: "Amount", border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
               ),
               const SizedBox(height: 15),
               TextField(
                 controller: _noteController,
-                decoration: InputDecoration(labelText: "Faahfaahin (Note)", border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
+                decoration: InputDecoration(labelText: "Note", border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -230,7 +230,7 @@ class _FinancePageState extends State<FinancePage> {
 
   Widget _buildTransactionList() {
     if (_transactions.isEmpty) {
-      return const Center(child: Text("Weli wax xog ah ma jirto"));
+      return const Center(child: Text("No data available yet"));
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),

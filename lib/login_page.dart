@@ -17,14 +17,12 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false; 
   final Color primaryGreen = Colors.lightBlue;
 
-  // 🔹 FUNCTION-KA LOGIN-KA OO DATABASE-KA KU XIDHAN
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // Waxaan u yeeraynaa AuthApiService si loo hubiyo user-ka
       final response = await AuthApiService.loginUser(
         _userController.text.trim(),
         _passController.text.trim(),
@@ -32,26 +30,21 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      // 🔹 Hubi haddii success uu yahay true (sida uu soo celinayo Backend-ku)
       if (response['success'] == true || response['role'] != null) {
-        
-        _showSnackBar("Login Successful! Soo dhawaaw", Colors.green);
+        _showSnackBar("Login Successful!", Colors.green);
 
-        // 🔹 MUHIIM: U gudbi Dashboard-ka adiga oo raacinaya Role-ka 
-        // Role-ka wuxuu noqon karaa 'Admin' ama 'User'
         Navigator.pushReplacementNamed(
           context,
           '/dashboard',
           arguments: response['role'], 
         );
       } else {
-        _showSnackBar("Username ama Password waa khaldan yahay!", Colors.red);
+        _showSnackBar("Incorrect Username or Password!", Colors.red);
       }
       
     } catch (e) {
       if (!mounted) return;
-      // Haddii password ama username khaldan yahay ama server error
-      _showSnackBar("Khalad: Username ama Password waa khaldan yahay!", Colors.red);
+      _showSnackBar("Incorrect Username or Password!", Colors.red);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -89,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Icon(Icons.menu_book_rounded, size: 80, color: Colors.lightBlue),
                 const SizedBox(height: 10),
                 const Text(
-                  " Welcome Qaloon Stationary",
+                  "Welcome Qaloon Stationary",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 40),
@@ -101,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  validator: (v) => v!.isEmpty ? "Fadlan geli username" : null,
+                  validator: (v) => v!.isEmpty ? "Please enter username" : null,
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
@@ -120,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  validator: (v) => v!.isEmpty ? "Fadlan geli password" : null,
+                  validator: (v) => v!.isEmpty ? "Please enter password" : null,
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
@@ -143,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  "Hadii aadan lahayn akoon, la xiriir Maamulka (SuperAdmin).",
+                  "If you don't have an account, please contact the Administration (SuperAdmin).",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: Colors.grey),
                 ),
