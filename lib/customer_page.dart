@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class CustomerApiService {
-  // Waxaan u beddelnay IP-gaaga rasmiga ah si uu ugu xidhmo server-ka dhabta ah
   static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/customers";
-  
 
   static Future<List> getCustomers() async {
     final res = await http.get(Uri.parse(baseUrl));
@@ -96,6 +94,7 @@ class _CustomerPageState extends State<CustomerPage> {
     setState(() => _loading = true);
     try {
       List data = await CustomerApiService.getCustomers();
+      if (!mounted) return;
       setState(() {
         _customers.clear();
         _customers.addAll(data.map<Map<String, String>>((e) => {
@@ -110,7 +109,7 @@ class _CustomerPageState extends State<CustomerPage> {
     } catch (e) {
       print("Fetch customers error: $e");
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -129,6 +128,7 @@ class _CustomerPageState extends State<CustomerPage> {
         _districtController.clear();
         _neighborhoodController.clear();
         FocusScope.of(context).unfocus();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Customer saved successfully!"), backgroundColor: Colors.teal),
         );
@@ -149,7 +149,7 @@ class _CustomerPageState extends State<CustomerPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete"),
+            child: const Text("Delete", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -195,6 +195,7 @@ class _CustomerPageState extends State<CustomerPage> {
                 neighborhoodController.text,
               );
               await _fetchCustomers();
+              if (!mounted) return;
               Navigator.pop(context);
             },
             child: const Text("Save"),
@@ -211,10 +212,7 @@ class _CustomerPageState extends State<CustomerPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         child: Container(
           padding: const EdgeInsets.all(25),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-          ),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -262,7 +260,7 @@ class _CustomerPageState extends State<CustomerPage> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("CLOSE "),
+                  child: const Text("CLOSE"),
                 ),
               ),
             ],
@@ -272,10 +270,9 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
-  Widget _buildInput(TextEditingController controller, String hint, IconData icon, {TextInputType inputType = TextInputType.text, Function(String)? onChanged}) {
+  Widget _buildInput(TextEditingController controller, String hint, IconData icon, {TextInputType inputType = TextInputType.text}) {
     return TextField(
       controller: controller,
-      onChanged: onChanged,
       keyboardType: inputType,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
@@ -393,25 +390,11 @@ class _CustomerPageState extends State<CustomerPage> {
                       prefixIcon: const Icon(Icons.search, color: Colors.teal),
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide(color: Colors.teal.shade100),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(color: Colors.teal),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 20, left: 20),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("CUSTOMER LIST", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
-                  ),
-                ),
+                // Xalka RenderObject: Expanded waxa uu ListView-ga siinayaa meel uu ku fido
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
