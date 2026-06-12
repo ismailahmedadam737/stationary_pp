@@ -8,6 +8,7 @@ const User = {
     },
 
     // Mid cusub ku daro
+    // Database-ka ayaa si toos ah u samaynaya id-ga (Default/Identity)
     createUser: async (username, password, role) => {
         const res = await pool.query(
             'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role',
