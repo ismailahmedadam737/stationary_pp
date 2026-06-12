@@ -1,4 +1,3 @@
-// 🔹 XALKA: Isticmaal 'models' (leh 's')
 const User = require('../models/userModel');
 
 const getUsers = async (req, res) => {
@@ -16,7 +15,7 @@ const addUser = async (req, res) => {
         const newUser = await User.createUser(username, password, role);
         res.status(201).json(newUser);
     } catch (err) {
-        res.status(500).json({ error: "Username-ka waa la isticmaalay!" });
+        res.status(500).json({ error: "Username-ka waa la isticmaalay ama khalad ayaa dhacay!" });
     }
 };
 
