@@ -1,17 +1,20 @@
-const pool = require('../config/db'); // Hubi in xidhiidhka DB halkan ku jiro
+const pool = require('../config/db'); // Waxaan ka saarnay { pool } maxaa yeelay db.js wuxuu export-garaynayaa pool-ka laftiisa
 
 const Auth = {
     findByUsername: async (username) => {
         try {
-            // Waxaan u beddelnay ILIKE si uuna u kala saarin xarfaha waaweyn iyo kuwa yaryar (Case-Insensitive)
-            const res = await pool.query('SELECT * FROM users WHERE username ILIKE $1', [username.trim()]);
+            // Hubi in username-ku uusan ahayn null
+            if (!username) return null;
+
+            const query = 'SELECT * FROM users WHERE username ILIKE $1';
+            const values = [username.trim()];
             
-            if (res.rows.length > 0) {
-                return res.rows[0];
-            }
-            return null; // Haddii aan la helin user-ka
+            const res = await pool.query(query, values);
+            
+            return res.rows.length > 0 ? res.rows[0] : null;
         } catch (err) {
-            console.error("DATABASE ERROR (authModel):", err.message);
+            // Waxaan kordhinay faahfaahinta khaladka si loo ogaado sababta
+            console.error("DATABASE ERROR (authModel) FAHFAAHIN:", err.message);
             throw err;
         }
     }
