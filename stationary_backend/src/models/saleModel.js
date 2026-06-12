@@ -1,11 +1,14 @@
 const pool = require('../config/db'); 
 
 class Sale {
+  // 🔹 In la soo akhriyo dhammaan xogta iibka
   static async getAllSales() {
-    const { rows } = await pool.query('SELECT * FROM sales ORDER BY created_at DESC');
+    const query = 'SELECT * FROM sales ORDER BY created_at DESC';
+    const { rows } = await pool.query(query);
     return rows;
   }
 
+  // 🔹 In la keydiyo iib cusub
   static async createSale(saleData) {
     const { book_title, qty, price, discount, debt, invoice_no } = saleData;
     const query = `
@@ -18,9 +21,17 @@ class Sale {
     return rows[0];
   }
 
-  // Magacan ayaan u beddelay si uu ula jaanqaado controller-kaaga
-  static async deleteOldSales() {
-    const { rowCount } = await pool.query('DELETE FROM sales');
+  // 🔹 In la tirtiro iib gaar ah (Haddii loo baahdo)
+  static async deleteSale(id) {
+    const query = 'DELETE FROM sales WHERE id = $1 RETURNING *';
+    const { rows } = await pool.query(query, [id]);
+    return rows[0];
+  }
+
+  // 🔹 In la tirtiro dhammaan taariikhda iibka
+  static async deleteAll() {
+    const query = 'DELETE FROM sales';
+    const { rowCount } = await pool.query(query);
     return rowCount; 
   }
 }
