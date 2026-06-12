@@ -1,28 +1,40 @@
-const Sale = require('../models/saleModel');
+const ProductSale = require('../models/saleModel');
 
-exports.getSales = async (req, res) => {
-  try {
-    const sales = await Sale.getAll();
-    res.json(sales);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+const getSales = async (req, res) => {
+    try {
+        const sales = await ProductSale.getAllSales();
+        res.status(200).json({ success: true, data: sales });
+    } catch (error) {
+        console.error("GET SALES ERROR:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
 
-exports.createSale = async (req, res) => {
-  try {
-    const newSale = await Sale.create(req.body);
-    res.status(201).json(newSale);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+const createSale = async (req, res) => {
+    try {
+        const { book_title, qty, price, discount, debt, invoice_no } = req.body;
+        if (!book_title || !qty || !price || !invoice_no) {
+            return res.status(400).json({ success: false, message: 'Fadlan xogta soo dhammaystir' });
+        }
+        const newSale = await ProductSale.createSale({ book_title, qty, price, discount, debt, invoice_no });
+        res.status(201).json({ success: true, data: newSale });
+    } catch (error) {
+        console.error("CREATE SALE ERROR:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
 
-exports.bulkDeleteSales = async (req, res) => {
-  try {
-    await Sale.deleteAll();
-    res.json({ message: "Dhammaan iibka waa la tirtiray" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+const bulkDeleteSales = async (req, res) => {
+    try {
+        const deletedCount = await ProductSale.deleteOldSales();
+        res.status(200).json({ 
+            success: true, 
+            message: `Waxaa guul lagu tirtiray ${deletedCount} iib!` 
+        });
+    } catch (error) {
+        console.error("DELETE SALES ERROR:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
+
+module.exports = { getSales, createSale, bulkDeleteSales };
