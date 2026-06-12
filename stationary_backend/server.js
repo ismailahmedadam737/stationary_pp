@@ -6,14 +6,21 @@ require('dotenv').config();
 const app = express();
 
 // 🔹 1. Neon Database Connection
+// Waxaan ku darnay 'connectionTimeoutMillis' si aysan u dhicin waiting endless ah
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 10000, 
 });
 
-pool.connect()
-  .then(() => console.log('✅ Neon Database-kii wuu ku xirmay si guul leh!'))
-  .catch(err => console.error('❌ Khalad ayaa dhacay xiriirka database-ka:', err.stack));
+// Test connection
+pool.on('connect', () => {
+  console.log('✅ Neon Database-kii wuu ku xirmay si guul leh!');
+});
+
+pool.on('error', (err) => {
+  console.error('❌ Database unexpected error:', err);
+});
 
 // 🔹 2. Middleware
 app.use(cors());
@@ -45,8 +52,8 @@ app.get('/', (req, res) => {
 });
 
 // 🔹 6. Start Server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 10000; // Render inta badan wuxuu isticmaalaa 10000
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running smoothly on port ${PORT}`);
 });
 
