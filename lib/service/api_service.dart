@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 // =========================================================================
 // SETUP-KA IP-GA CENTRAL-KA AH (Hadda wuxuu u jeedaa Render Server-kaaga)
 // =========================================================================
+// Beddelkan ku samee meesha aad ku qeexday globalBaseUrl
 const String globalBaseUrl = "https://stationary-backend-6fh1.onrender.com/api";
-
 // =========================================================================
 // 1. QAYBTA LOGIN (AUTH) - ACTIVE ✅
 // =========================================================================
