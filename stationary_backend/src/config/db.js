@@ -1,23 +1,21 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// PostgreSQL connection pool
+// Waxaan hubinaynaa inaan isticmaalno DATABASE_URL haddii uu jiro (Online)
+// Haddii kale waxaan isticmaalnaa settings-ka local-ka
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'stationary_db',
-  password: process.env.DB_PASSWORD || '1234',
-  port: process.env.DB_PORT || 5432,
+  connectionString: process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
 // Test connection
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Database connection error:', err.message);
-  } else {
+pool.connect()
+  .then(client => {
     console.log('✅ PostgreSQL connected successfully');
-    release();
-  }
-});
+    client.release();
+  })
+  .catch(err => {
+    console.error('❌ Database connection error:', err.message);
+  });
 
 module.exports = pool;
