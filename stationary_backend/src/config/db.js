@@ -1,13 +1,9 @@
 const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false // Tani waa muhiim Neon/Render
-  },
-  max: 20, // Tirada ugu badan ee connections-ka
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  ssl: { rejectUnauthorized: false }
 });
 
-module.exports = pool;
+module.exports = pool; // Halkan si toos ah ayaan u dhoofinaynaa pool-ka
