@@ -1,38 +1,34 @@
 const pool = require('../config/db'); 
 
 class Sale {
-  // 🔹 In la soo akhriyo dhammaan xogta iibka
-  static async getAllSales() {
-    const query = 'SELECT * FROM sales ORDER BY created_at DESC';
-    const { rows } = await pool.query(query);
+  // In la soo akhriyo dhammaan iibka
+  static async getAll() {
+    const { rows } = await pool.query('SELECT * FROM sales ORDER BY created_at DESC');
     return rows;
   }
 
-  // 🔹 In la keydiyo iib cusub
-  static async createSale(saleData) {
-    const { book_title, qty, price, discount, debt, invoice_no } = saleData;
+  // In la sameeyo iib cusub
+  static async create(data) {
+    const { book_title, qty, price, discount, debt, invoice_no } = data;
     const query = `
       INSERT INTO sales (book_title, qty, price, discount, debt, invoice_no) 
       VALUES ($1, $2, $3, $4, $5, $6) 
-      RETURNING *
-    `;
-    const values = [book_title, qty, price, discount, debt, invoice_no];
-    const { rows } = await pool.query(query, values);
+      RETURNING *`;
+    const { rows } = await pool.query(query, [book_title, qty, price, discount, debt, invoice_no]);
     return rows[0];
   }
 
-  // 🔹 In la tirtiro iib gaar ah (Haddii loo baahdo)
-  static async deleteSale(id) {
+  // In la tirtiro iib gaar ah (Haddii aad u baahato)
+  static async delete(id) {
     const query = 'DELETE FROM sales WHERE id = $1 RETURNING *';
     const { rows } = await pool.query(query, [id]);
     return rows[0];
   }
 
-  // 🔹 In la tirtiro dhammaan taariikhda iibka
+  // In la tirtiro dhammaan taariikhda iibka
   static async deleteAll() {
-    const query = 'DELETE FROM sales';
-    const { rowCount } = await pool.query(query);
-    return rowCount; 
+    const { rowCount } = await pool.query('DELETE FROM sales');
+    return rowCount;
   }
 }
 
