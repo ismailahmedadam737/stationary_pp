@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class CustomerApiService {
-  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/customers";
-
-  static Future<List> getCustomers() async {
+  // Waxaan u beddelnay IP-gaaga rasmiga ah si uu ugu xidhmo server-ka dhabta ah
+// HUBI IN URL-KU SIDAN YAHAY
+static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/customers";  static Future<List> getCustomers() async {
     final res = await http.get(Uri.parse(baseUrl));
     if (res.statusCode == 200) {
       return jsonDecode(res.body);
@@ -26,7 +26,7 @@ class CustomerApiService {
       }),
     );
     if (res.statusCode != 200 && res.statusCode != 201) {
-      throw Exception("Failed to add customer: ${res.statusCode}");
+      throw Exception("Failed to add customer");
     }
   }
 
@@ -106,7 +106,7 @@ class _CustomerPageState extends State<CustomerPage> {
         _filteredCustomers = List.from(_customers);
       });
     } catch (e) {
-      print("Fetch error: $e");
+      print("Fetch customers error: $e");
     } finally {
       setState(() => _loading = false);
     }
@@ -114,7 +114,6 @@ class _CustomerPageState extends State<CustomerPage> {
 
   Future<void> _addCustomer() async {
     if (_nameController.text.isNotEmpty && _phoneController.text.isNotEmpty) {
-      setState(() => _loading = true);
       try {
         await CustomerApiService.addCustomer(
           _nameController.text,
@@ -132,12 +131,7 @@ class _CustomerPageState extends State<CustomerPage> {
           const SnackBar(content: Text("Customer saved successfully!"), backgroundColor: Colors.teal),
         );
       } catch (e) {
-        print("Add error: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Error saving customer!"), backgroundColor: Colors.red),
-        );
-      } finally {
-        setState(() => _loading = false);
+        print("Add customer error: $e");
       }
     }
   }
@@ -215,24 +209,58 @@ class _CustomerPageState extends State<CustomerPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         child: Container(
           padding: const EdgeInsets.all(25),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(radius: 40, backgroundColor: Colors.teal.withOpacity(0.1), child: const Icon(Icons.person, size: 50, color: Colors.teal)),
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.teal.withOpacity(0.1),
+                child: const Icon(Icons.person, size: 50, color: Colors.teal),
+              ),
               const SizedBox(height: 15),
               Text(customer['name']!, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+              const Text("Qaloon Books Customer", style: TextStyle(color: Colors.grey)),
               const Divider(height: 30),
               _buildDetailRow(Icons.phone_android, "Phone", customer['phone']!),
               _buildDetailRow(Icons.location_city, "District", customer['district']!),
               _buildDetailRow(Icons.home_work, "Neighborhood", customer['neighborhood']!),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
+              if (currentUserRole == 'admin')
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showEditDialog(customer);
+                        },
+                        child: const Text("EDIT"),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _deleteCustomer(customer);
+                        },
+                        child: const Text("DELETE"),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("CLOSE"),
+                  child: const Text("CLOSE "),
                 ),
               ),
             ],
@@ -242,9 +270,10 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
-  Widget _buildInput(TextEditingController controller, String hint, IconData icon, {TextInputType inputType = TextInputType.text}) {
+  Widget _buildInput(TextEditingController controller, String hint, IconData icon, {TextInputType inputType = TextInputType.text, Function(String)? onChanged}) {
     return TextField(
       controller: controller,
+      onChanged: onChanged,
       keyboardType: inputType,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
@@ -266,16 +295,21 @@ class _CustomerPageState extends State<CustomerPage> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         onTap: () => _showCustomerDetails(customer),
-        leading: CircleAvatar(backgroundColor: Colors.teal.withOpacity(0.1), child: Text(customer['name']![0].toUpperCase(), style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold))),
+        leading: CircleAvatar(
+          backgroundColor: Colors.teal.withOpacity(0.1),
+          child: Text(customer['name']![0].toUpperCase(), style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
+        ),
         title: Text(customer['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text("📞 ${customer['phone']}", style: const TextStyle(fontSize: 13)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showEditDialog(customer)),
-            IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteCustomer(customer)),
-          ],
-        ),
+        trailing: role == 'admin'
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showEditDialog(customer)),
+                  IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteCustomer(customer)),
+                ],
+              )
+            : const Icon(Icons.chevron_right, color: Colors.grey),
       ),
     );
   }
@@ -298,16 +332,27 @@ class _CustomerPageState extends State<CustomerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final dynamic args = ModalRoute.of(context)?.settings.arguments;
+    final String userRole = args is String ? args : currentUserRole;
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(title: const Text("Customer Registry", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), centerTitle: true, backgroundColor: Colors.teal, elevation: 0),
+      appBar: AppBar(
+        title: const Text("Customer Registry", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: Colors.teal,
+        elevation: 0,
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30))),
+                  decoration: const BoxDecoration(
+                    color: Colors.teal,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+                  ),
                   child: Column(
                     children: [
                       _buildInput(_nameController, "Customer Name", Icons.person),
@@ -326,19 +371,53 @@ class _CustomerPageState extends State<CustomerPage> {
                         onPressed: _addCustomer,
                         icon: const Icon(Icons.check_circle),
                         label: const Text("Add New Customer", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700], foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber[700],
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
                       ),
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(15, 15, 15, 5),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _filterCustomers,
+                    decoration: InputDecoration(
+                      hintText: "Search customer name...",
+                      prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: Colors.teal.shade100),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.teal),
+                      ),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 20, left: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("CUSTOMER LIST", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
+                  ),
+                ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: _filteredCustomers.isEmpty
-                        ? const Center(child: Text("No customers yet", style: TextStyle(color: Colors.grey)))
+                        ? const Center(child: Text("No customer found", style: TextStyle(color: Colors.grey)))
                         : ListView.builder(
                             itemCount: _filteredCustomers.length,
-                            itemBuilder: (context, index) => _buildCustomerCard(_filteredCustomers[index], currentUserRole),
+                            itemBuilder: (context, index) => _buildCustomerCard(_filteredCustomers[index], userRole),
                           ),
                   ),
                 ),
