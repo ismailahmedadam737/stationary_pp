@@ -1,8 +1,7 @@
-const pool = require('../config/db'); 
+const { pool } = require('../../server'); 
 
 const Finance = {
     getAll: async () => {
-        // Halkan waxaan ka dhignay 'finance' sidii aad u bixisay
         const res = await pool.query('SELECT * FROM finance ORDER BY date DESC');
         return res.rows;
     },
@@ -16,8 +15,8 @@ const Finance = {
     },
 
     delete: async (id) => {
-        await pool.query('DELETE FROM finance WHERE id = $1', [id]);
-        return { message: "Transaction deleted" };
+        const res = await pool.query('DELETE FROM finance WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0]; // Waxaan soo celinaynaa xogtii la tirtiray
     }
 };
 

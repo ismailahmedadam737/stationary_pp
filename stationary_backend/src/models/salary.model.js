@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const { pool } = require('../../server'); // Hubi inuu pool-ku ka imanayo server.js
 
 const Salary = {
     // In la keydiyo mushahar cusub
@@ -6,7 +6,8 @@ const Salary = {
         const { employee_id, employee_name, basic_salary, reward, penalty, total_amount } = data;
         const query = `
             INSERT INTO salaries (employee_id, employee_name, basic_salary, reward, penalty, total_amount)
-            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
+            VALUES ($1, $2, $3, $4, $5, $6) 
+            RETURNING *`;
         const values = [employee_id, employee_name, basic_salary, reward, penalty, total_amount];
         const { rows } = await pool.query(query, values);
         return rows[0];
@@ -14,6 +15,7 @@ const Salary = {
 
     // In la soo akhriyo dhammaan taariikhda (History)
     fetchAll: async () => {
+        // Waxaa muhiim ah inaan xaqiijinno in payment_date ay ka jirto table-kaaga
         const { rows } = await pool.query('SELECT * FROM salaries ORDER BY payment_date DESC');
         return rows;
     }
