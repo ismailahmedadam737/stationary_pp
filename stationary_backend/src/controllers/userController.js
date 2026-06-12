@@ -11,6 +11,12 @@ const getUsers = async (req, res) => {
 
 const addUser = async (req, res) => {
     const { username, password, role } = req.body;
+    
+    // ⚠️ DIGNIIN: Hubinta in xogtu aysan bannaanayn
+    if (!username || !password || !role) {
+        return res.status(400).json({ error: "Fadlan soo buuxi dhammaan goobaha (Username, Password, Role)!" });
+    }
+
     try {
         const newUser = await User.createUser(username, password, role);
         res.status(201).json(newUser);

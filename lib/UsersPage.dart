@@ -30,17 +30,20 @@ class _UsersPageState extends State<UsersPage> {
   Future<void> _fetchUsers() async {
     try {
       final data = await UserApiService.getUsers();
+      if (!mounted) return;
       setState(() {
         _usersList = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       _showSnackBar("An error occurred, data could not be fetched!");
     }
   }
 
   void _addUser() async {
+    // ⚠️ DIGNIIN: Hubinta in form-ku uu sax yahay ka hor inta aan la dirin
     if (_formKey.currentState!.validate()) {
       try {
         await UserApiService.addUser(
@@ -55,12 +58,13 @@ class _UsersPageState extends State<UsersPage> {
         
         _fetchUsers(); 
       } catch (e) {
-        _showSnackBar("Username is already taken or an error occurred!");
+        _showSnackBar("Error: Username is already taken or server error!");
       }
+    } else {
+      _showSnackBar("Fadlan buuxi dhammaan goobaha loo baahan yahay! ⚠️");
     }
   }
 
-  // Waxaan ku darnay pop-up digniin ah ka hor inta uusan tirtirin user-ka
   void _deleteUser(int id) async {
     showDialog(
       context: context,
@@ -71,13 +75,13 @@ class _UsersPageState extends State<UsersPage> {
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
               SizedBox(width: 10),
-              Text("Aler!", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Alert!", style: TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           content: const Text("Are you sure you want to delete this user?"),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Wuu ka laabanayaa
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
@@ -86,16 +90,16 @@ class _UsersPageState extends State<UsersPage> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () async {
-                Navigator.pop(context); // Pop-up-ka ayuu xirayaa
+                Navigator.pop(context);
                 try {
-                  await UserApiService.deleteUser(id);
+                  await UserApiService.deleteUser(id.toString() as int);
                   _showSnackBar("User is deleted ✅");
                   _fetchUsers();
                 } catch (e) {
                   _showSnackBar("Could not delete the user!");
                 }
               },
-              child: const Text("Yes,Delete", style: TextStyle(color: Colors.white)),
+              child: const Text("Yes, Delete", style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -104,6 +108,7 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void _showSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
@@ -211,18 +216,9 @@ class _UsersPageState extends State<UsersPage> {
                           ),
                           title: Text(user['username'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text("Role: ${user['role']}"),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Chip(
-                                label: Text(user['role'] ?? '', style: const TextStyle(fontSize: 10, color: Colors.white)),
-                                backgroundColor: user['role'] == 'Admin' ? Colors.orange : Colors.blueGrey,
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                onPressed: () => _deleteUser(user['id']),
-                              ),
-                            ],
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () => _deleteUser(user['id']),
                           ),
                         ),
                       );
@@ -247,7 +243,8 @@ class _UsersPageState extends State<UsersPage> {
         fillColor: Colors.white.withOpacity(0.2),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
-      validator: (v) => v!.isEmpty ? "enter $hint" : null,
+      // ⚠️ DIGNIIN: Validation-ka halkan ayaad ku arki kartaa
+      validator: (v) => v == null || v.isEmpty ? "Please enter $hint" : null,
     );
   }
 }
