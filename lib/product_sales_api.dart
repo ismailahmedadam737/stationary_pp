@@ -39,7 +39,7 @@ class ProductSalesApiService {
 
 // ⬇️ REER BACKEND: ADEEGGA BUUGAAGTA (BOOKS API SERVICE) ⬇️
 class BookApiService {
-  static const String baseUrl = "http://localhost:3000/api/books";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/books";
 
   static Future<List<String>> getBookNames() async {
     try {
@@ -59,7 +59,7 @@ class BookApiService {
 
 // ⬇️ REER BACKEND: ADEEGGA MAALIYADDA (FINANCE API SERVICE) ⬇️
 class FinanceApiService {
-  static const String baseUrl = "http://localhost:3000/api/finance";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/finance";
 
   static Future<List> getTransactions() async {
     try {
