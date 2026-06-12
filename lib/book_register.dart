@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Waxaan u beddelnay IP-gaaga rasmiga ah ee mishiinka dhabta ah
-  static const String baseUrl = "http://localhost:3000/api/books";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/books";
 
   static Future<List<Map<String, String>>> getItems() async {
     final res = await http.get(Uri.parse(baseUrl));
