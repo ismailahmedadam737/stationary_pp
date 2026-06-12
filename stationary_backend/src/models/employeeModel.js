@@ -1,4 +1,4 @@
-const { pool } = require('../../server'); // Hubi inuu pool-ku ka imanayo server.js
+const pool = require('../config/db'); 
 
 class Employee {
   static async getAll() {
@@ -13,6 +13,7 @@ class Employee {
     return rows[0];
   }
 
+  // 🔹 UPDATE: Wax ka beddelka xogta
   static async update(id, data) {
     const { name, phone, position, salary } = data;
     const query = 'UPDATE employees SET name=$1, phone=$2, position=$3, salary=$4 WHERE id=$5 RETURNING *';
@@ -20,6 +21,7 @@ class Employee {
     return rows[0];
   }
 
+  // 🔹 DELETE: Tirtirista shaqaalaha
   static async delete(id) {
     const query = 'DELETE FROM employees WHERE id = $1 RETURNING *';
     const { rows } = await pool.query(query, [id]);
