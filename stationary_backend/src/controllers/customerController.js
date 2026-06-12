@@ -43,9 +43,4 @@ const removeCustomer = async (req, res) => {
     }
 };
 
-module.exports = {
-    getCustomers,
-    addCustomer,
-    editCustomer,
-    removeCustomer
-};
+module.exports = { getCustomers, addCustomer, editCustomer, removeCustomer };
