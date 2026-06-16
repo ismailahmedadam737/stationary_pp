@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Waxaan ka keenaynaa pool-ka faylka config/db.js si looga fogaado wareerka
+// Waxaan ka keenaynaa pool-ka faylka config/db.js
 const pool = require('./src/config/db');
 
 const app = express();
@@ -43,6 +43,12 @@ app.use('/api/sales', salesRoutes);
 // 🔹 Root route
 app.get('/', (req, res) => {
     res.send('Stationary API Working ✅');
+});
+
+// 🔹 Global Error Handler (Waxay ka hortagtaa in server-ku dhaco marka khalad dhaco)
+app.use((err, req, res, next) => {
+    console.error("❌ Global Error Handler:", err.stack);
+    res.status(500).json({ error: "Something went wrong on the server!" });
 });
 
 // 🔹 Start Server
