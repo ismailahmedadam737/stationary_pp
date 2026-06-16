@@ -27,7 +27,7 @@ class BookApiService {
 }
 
 class FinanceApiService {
-  static const String baseUrl = "http://localhost:3000/api/finance";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/finance";
 
   static Future<List> getTransactions() async {
     try {
@@ -45,7 +45,7 @@ class FinanceApiService {
 }
 
 class SalesApiService {
-  static const String baseUrl = "http://localhost:3000/api/sales";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/sales";
 
   static Future<List> getSales() async {
     try {
