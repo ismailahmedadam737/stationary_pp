@@ -467,7 +467,7 @@ class _SalesPageState extends State<SalesPage> {
                         ),
                   actions: [
                     TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
-                   ElevatedButton(
+                    ElevatedButton(
   style: ElevatedButton.styleFrom(
     backgroundColor: Colors.blue[800],
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
