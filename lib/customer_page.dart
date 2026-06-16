@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 class CustomerApiService {
@@ -177,7 +178,11 @@ class _CustomerPageState extends State<CustomerPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
+            TextField(
+              controller: nameController, 
+              decoration: const InputDecoration(labelText: 'Name'),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+            ),
             TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone')),
             TextField(controller: districtController, decoration: const InputDecoration(labelText: 'District')),
             TextField(controller: neighborhoodController, decoration: const InputDecoration(labelText: 'Neighborhood')),
@@ -270,10 +275,11 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
-  Widget _buildInput(TextEditingController controller, String hint, IconData icon, {TextInputType inputType = TextInputType.text}) {
+  Widget _buildInput(TextEditingController controller, String hint, IconData icon, {TextInputType inputType = TextInputType.text, List<TextInputFormatter>? formatters}) {
     return TextField(
       controller: controller,
       keyboardType: inputType,
+      inputFormatters: formatters,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: Colors.white70),
@@ -354,7 +360,12 @@ class _CustomerPageState extends State<CustomerPage> {
                   ),
                   child: Column(
                     children: [
-                      _buildInput(_nameController, "Customer Name", Icons.person),
+                      _buildInput(
+                        _nameController, 
+                        "Customer Name", 
+                        Icons.person,
+                        formatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))]
+                      ),
                       const SizedBox(height: 10),
                       _buildInput(_phoneController, "Phone", Icons.phone, inputType: TextInputType.phone),
                       const SizedBox(height: 10),
@@ -394,7 +405,6 @@ class _CustomerPageState extends State<CustomerPage> {
                     ),
                   ),
                 ),
-                // Xalka RenderObject: Expanded waxa uu ListView-ga siinayaa meel uu ku fido
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
