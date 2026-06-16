@@ -485,7 +485,7 @@ class _SalesPageState extends State<SalesPage> {
       int totalQty = itemsList.fold(0, (sum, item) => sum + (int.tryParse(item.qtyController.text) ?? 0));
       double totalPrice = itemsList.fold(0.0, (sum, item) => sum + ((double.tryParse(item.priceController.text) ?? 0) * (int.tryParse(item.qtyController.text) ?? 0)));
       
-      // Halkan ayaan ku xisaabinaynaa total-ka saxda ah
+      // Xisaabinta Total-ka
       double discount = double.tryParse(discountController.text) ?? 0.0;
       double finalTotal = totalPrice - discount;
 
@@ -496,10 +496,10 @@ class _SalesPageState extends State<SalesPage> {
         'discount': discount,
         'debt': double.tryParse(debtController.text) ?? 0.0,
         'invoice_no': DateTime.now().millisecondsSinceEpoch.toString().substring(7),
-        'total': finalTotal, // <--- MUHIIM: Ku dar column-kan
+        'total': finalTotal, // <--- Kani waa column-ka maqnaa ee server-ku diidanaa
       };
 
-      debugPrint("📤 Diraya Xogta: $saleData"); // Si aad u hubiso logs-ka Flutter
+      debugPrint("📤 Diraya Xogta: $saleData");
 
       bool success = await SalesApiService.saveNewSale(saleData);
 
@@ -508,6 +508,7 @@ class _SalesPageState extends State<SalesPage> {
           _loadTodaySales();
           _loadFinanceData();
           Navigator.pop(context);
+          
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Iibka waa la kaydiyay! 💾"), backgroundColor: Colors.green),
           );
