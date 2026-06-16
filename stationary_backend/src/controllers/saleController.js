@@ -11,28 +11,33 @@ const getSales = async (req, res) => {
 };
 
 const createSale = async (req, res) => {
-    // 1. Aynu aragno xogta Flutter ka timid server-ka
     console.log("📥 Request Body-ga soo gaaray:", JSON.stringify(req.body, null, 2));
     
     try {
+        // Halkan 'total' kama rabno maadaama DB uu isagu xisaabinayo
         const { book_title, qty, price, discount, debt, invoice_no } = req.body;
         
-        // 2. Hubinta xogta
-        if (!book_title || !qty || !price || !invoice_no) {
-            console.warn("⚠️ Xogta oo maqan:", req.body);
-            return res.status(400).json({ success: false, message: 'Fadlan xogta soo dhammaystir' });
+        // 2. Hubinta xogta (Waxaan ka saarnay total)
+        if (!book_title || qty === undefined || price === undefined || !invoice_no) {
+            console.warn("⚠️ Xogta oo maqan (Hubi qty iyo price):", req.body);
+            return res.status(400).json({ success: false, message: 'Fadlan xogta soo dhammaystir (qty, price, invoice_no)' });
         }
 
-        const newSale = await Sale.createSale({ book_title, qty, price, discount, debt, invoice_no });
+        // 3. U dir Model-ka xogta aan 'total'-ka lahayn
+        const newSale = await Sale.createSale({ 
+            book_title, 
+            qty, 
+            price, 
+            discount: discount || 0, 
+            debt: debt || 0, 
+            invoice_no 
+        });
+
         console.log("✅ Iibka waxaa guul lagu kaydiyay:", newSale);
-        
         res.status(201).json({ success: true, data: newSale });
+
     } catch (error) {
-        // 3. Halkan waa meesha ay ku qormayso cilada dhabta ah ee database-ka
         console.error("🚨 DATABASE ERROR (Create Sale):", error);
-        console.error("🚨 Error Name:", error.name);
-        console.error("🚨 Error Message:", error.message);
-        console.error("🚨 Error Detail (Haddii uu jiro):", error.detail);
         
         res.status(500).json({ 
             success: false, 
