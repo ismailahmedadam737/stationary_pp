@@ -11,13 +11,13 @@ class Sale {
   }
 
   static async createSale(data) {
-    // Waxaan ku darnay 'total' halkan
-    const { book_title, qty, price, discount, debt, invoice_no, total } = data;
+    // Waxaan ka saarnay 'total' halkan sababtoo ah waa Generated Column
+    const { book_title, qty, price, discount, debt, invoice_no } = data;
     
-    // Query-ga waxaa lagu daray 'total' iyo $7
+    // Query-ga waxaan ka saarnay 'total' iyo $7
     const query = `
-      INSERT INTO sales (book_title, qty, price, discount, debt, invoice_no, total) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      INSERT INTO sales (book_title, qty, price, discount, debt, invoice_no) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
       RETURNING *`;
       
     try {
@@ -27,8 +27,7 @@ class Sale {
         price, 
         discount, 
         debt, 
-        invoice_no, 
-        total // Qiimaha total oo la gudbiyay
+        invoice_no
       ]);
       return rows[0];
     } catch (error) {
