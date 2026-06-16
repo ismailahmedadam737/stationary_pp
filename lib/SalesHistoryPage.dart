@@ -15,8 +15,9 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
   bool _isLoading = true;
   final _searchController = TextEditingController();
 
-  final String _apiUrl = "https://stationary-backend-6fh1.onrender.com/api/sales";
-
+// Ka saar: "http://localhost:3000/api/sales"
+// Ku beddel:
+final String _apiUrl = "https://stationary-backend-6fh1.onrender.com/api/sales";
   @override
   void initState() {
     super.initState();
