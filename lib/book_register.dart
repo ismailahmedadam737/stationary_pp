@@ -568,7 +568,7 @@ class _BookRegisterPageState extends State<BookRegisterPage> {
 // ====================================================================
 
 class UserApiService {
-  static const String baseUrl = "http://10.188.243.55:3000/api/users";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/users";
   static Future<List> getUsers() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -593,7 +593,7 @@ class UserApiService {
 }
 
 class AuthApiService {
-  static const String baseUrl = "http://10.188.243.55:3000/api/auth";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/auth";
   static Future<Map<String, dynamic>> loginUser(String username, String password) async {
     try {
       final res = await http.post(Uri.parse("$baseUrl/login"), headers: {"Content-Type": "application/json"}, body: jsonEncode({"username": username, "password": password}));
@@ -604,7 +604,7 @@ class AuthApiService {
 }
 
 class SalesApiService {
-  static const String baseUrl = "http://10.188.243.55:3000/api/sales";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/sales";
   static Future<List> getSales() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -622,7 +622,7 @@ class SalesApiService {
 }
 
 class EmployeeApiService {
-  static const String baseUrl = "http://10.188.243.55:3000/api/employees";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/employees";
   static Future<List> getEmployees() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
@@ -654,7 +654,7 @@ class EmployeeApiService {
 }
 
 class SalaryApiService {
-  static const String baseUrl = "http://10.188.243.55:3000/api/salaries";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/salaries";
   static Future<List> getSalaryHistory() async {
     try {
       final res = await http.get(Uri.parse("$baseUrl/history"));
@@ -672,7 +672,7 @@ class SalaryApiService {
 }
 
 class FinanceApiService {
-  static const String baseUrl = "http://10.188.243.55:3000/api/finance";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/finance";
   static Future<List> getTransactions() async {
     try {
       final res = await http.get(Uri.parse(baseUrl));
