@@ -486,15 +486,16 @@ class _SalesPageState extends State<SalesPage> {
                           int totalQty = itemsList.fold(0, (sum, item) => sum + (int.tryParse(item.qtyController.text) ?? 0));
                           double totalPrice = itemsList.fold(0.0, (sum, item) => sum + ((double.tryParse(item.priceController.text) ?? 0) * (int.tryParse(item.qtyController.text) ?? 0)));
 
-                          final Map<String, dynamic> saleData = {
-                            'book_title': combinedTitles,
-                            'qty': totalQty,
-                            'price': totalQty > 0 ? (totalPrice / totalQty) : 0.0, 
-                            'discount': double.tryParse(discountController.text) ?? 0.0,
-                            'debt': double.tryParse(debtController.text) ?? 0.0,
-                            'invoice_no': DateTime.now().millisecondsSinceEpoch.toString().substring(7),
-                          };
-
+                      final Map<String, dynamic> saleData = {
+  'book_title': combinedTitles,
+  'qty': totalQty,
+  'price': totalQty > 0 ? (totalPrice / totalQty) : 0.0, 
+  'discount': double.tryParse(discountController.text) ?? 0.0,
+  'debt': double.tryParse(debtController.text) ?? 0.0,
+  'invoice_no': DateTime.now().millisecondsSinceEpoch.toString().substring(7),
+  // Halkan ayaan ku darnay 'total' si uu ula jaan-qaado Database-ka
+  'total': (totalPrice - (double.tryParse(discountController.text) ?? 0.0)),
+};
                           bool success = await SalesApiService.saveNewSale(saleData);
 
                           if (success) {
