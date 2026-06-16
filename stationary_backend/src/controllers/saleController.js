@@ -11,18 +11,34 @@ const getSales = async (req, res) => {
 };
 
 const createSale = async (req, res) => {
+    // 1. Aynu aragno xogta Flutter ka timid server-ka
+    console.log("📥 Request Body-ga soo gaaray:", JSON.stringify(req.body, null, 2));
+    
     try {
         const { book_title, qty, price, discount, debt, invoice_no } = req.body;
         
+        // 2. Hubinta xogta
         if (!book_title || !qty || !price || !invoice_no) {
+            console.warn("⚠️ Xogta oo maqan:", req.body);
             return res.status(400).json({ success: false, message: 'Fadlan xogta soo dhammaystir' });
         }
 
         const newSale = await Sale.createSale({ book_title, qty, price, discount, debt, invoice_no });
+        console.log("✅ Iibka waxaa guul lagu kaydiyay:", newSale);
+        
         res.status(201).json({ success: true, data: newSale });
     } catch (error) {
-        console.error("❌ Controller Create Sale Error:", error.message);
-        res.status(500).json({ success: false, message: "Server error saving sale" });
+        // 3. Halkan waa meesha ay ku qormayso cilada dhabta ah ee database-ka
+        console.error("🚨 DATABASE ERROR (Create Sale):", error);
+        console.error("🚨 Error Name:", error.name);
+        console.error("🚨 Error Message:", error.message);
+        console.error("🚨 Error Detail (Haddii uu jiro):", error.detail);
+        
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error saving sale", 
+            error: error.message 
+        });
     }
 };
 
