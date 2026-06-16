@@ -467,61 +467,66 @@ class _SalesPageState extends State<SalesPage> {
                         ),
                   actions: [
                     TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[800], 
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                      ),
-                      onPressed: itemsList.any((element) => element.selectedBook == null) ? null : () async {
-                        
-                        bool valid = true;
-                        for (var item in itemsList) {
-                          if (item.qtyController.text.isEmpty || item.priceController.text.isEmpty) {
-                            valid = false;
-                          }
-                        }
+                   ElevatedButton(
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.blue[800],
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  ),
+  onPressed: itemsList.any((element) => element.selectedBook == null) ? null : () async {
+    bool valid = true;
+    for (var item in itemsList) {
+      if (item.qtyController.text.isEmpty || item.priceController.text.isEmpty) {
+        valid = false;
+      }
+    }
 
-                        if (valid) {
-                          String combinedTitles = itemsList.map((e) => e.selectedBook).join(", ");
-                          int totalQty = itemsList.fold(0, (sum, item) => sum + (int.tryParse(item.qtyController.text) ?? 0));
-                          double totalPrice = itemsList.fold(0.0, (sum, item) => sum + ((double.tryParse(item.priceController.text) ?? 0) * (int.tryParse(item.qtyController.text) ?? 0)));
+    if (valid) {
+      String combinedTitles = itemsList.map((e) => e.selectedBook).join(", ");
+      int totalQty = itemsList.fold(0, (sum, item) => sum + (int.tryParse(item.qtyController.text) ?? 0));
+      double totalPrice = itemsList.fold(0.0, (sum, item) => sum + ((double.tryParse(item.priceController.text) ?? 0) * (int.tryParse(item.qtyController.text) ?? 0)));
+      
+      // Halkan ayaan ku xisaabinaynaa total-ka saxda ah
+      double discount = double.tryParse(discountController.text) ?? 0.0;
+      double finalTotal = totalPrice - discount;
 
-                          final Map<String, dynamic> saleData = {
-                            'book_title': combinedTitles,
-                            'qty': totalQty,
-                            'price': totalQty > 0 ? (totalPrice / totalQty) : 0.0, 
-                            'discount': double.tryParse(discountController.text) ?? 0.0,
-                            'debt': double.tryParse(debtController.text) ?? 0.0,
-                            'invoice_no': DateTime.now().millisecondsSinceEpoch.toString().substring(7),
-                          };
+      final Map<String, dynamic> saleData = {
+        'book_title': combinedTitles,
+        'qty': totalQty,
+        'price': totalQty > 0 ? (totalPrice / totalQty) : 0.0,
+        'discount': discount,
+        'debt': double.tryParse(debtController.text) ?? 0.0,
+        'invoice_no': DateTime.now().millisecondsSinceEpoch.toString().substring(7),
+        'total': finalTotal, // <--- MUHIIM: Ku dar column-kan
+      };
 
-                          bool success = await SalesApiService.saveNewSale(saleData);
+      debugPrint("📤 Diraya Xogta: $saleData"); // Si aad u hubiso logs-ka Flutter
 
-                          if (success) {
-                            if (mounted) {
-                              _loadTodaySales(); 
-                              _loadFinanceData(); 
-                              Navigator.pop(context);
-                              
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Iibka waa la kaydiyay! 💾"), backgroundColor: Colors.green),
-                              );
-                            }
-                          } else {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Iibka laguma kaydin karo database-ka! ❌"), backgroundColor: Colors.redAccent),
-                              );
-                            }
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Fadlan buuxi Qty iyo Price-ka dhamaan alaabta! ⚠️"), backgroundColor: Colors.orange),
-                          );
-                        }
-                      },
-                      child: const Text("Save Sale", style: TextStyle(color: Colors.white)),
-                    ),
+      bool success = await SalesApiService.saveNewSale(saleData);
+
+      if (success) {
+        if (mounted) {
+          _loadTodaySales();
+          _loadFinanceData();
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Iibka waa la kaydiyay! 💾"), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Iibka laguma kaydin karo database-ka! ❌"), backgroundColor: Colors.redAccent),
+          );
+        }
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Fadlan buuxi Qty iyo Price-ka dhamaan alaabta! ⚠️"), backgroundColor: Colors.orange),
+      );
+    }
+  },
+  child: const Text("Save Sale", style: TextStyle(color: Colors.white)),
+),
                   ],
                 );
               },
