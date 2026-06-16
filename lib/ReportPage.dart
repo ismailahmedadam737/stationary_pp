@@ -15,10 +15,10 @@ class _ReportPageState extends State<ReportPage> {
   Future<Map<String, dynamic>> _fetchGeneralReportData() async {
     try {
       final results = await Future.wait([
-        CustomerApiService.getCustomers(),
-        SalesApiService.getSales(),
-        FinanceApiService.getTransactions(),
-        EmployeeApiService.getEmployees(),
+        CustomerApiService.getCustomers().catchError((e) => []),
+        SalesApiService.getSales().catchError((e) => []),
+        FinanceApiService.getTransactions().catchError((e) => []),
+        EmployeeApiService.getEmployees().catchError((e) => []),
       ]);
 
       List customers = results[0];
