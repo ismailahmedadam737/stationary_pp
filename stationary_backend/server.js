@@ -2,13 +2,12 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Waxaan soo dhoofinaynaa pool-ka si aan u hubinno inuu xiran yahay, 
-// laakiin waxaan isticmaalaynaa habka saxda ah ee xiriirka
+// Waxaan soo dhoofinaynaa pool-ka
 const pool = require('./src/config/db'); 
 
 const app = express();
 
-// 🔹 Middleware
+// 🔹 Middleware - CORS oo u furan qof walba
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -16,7 +15,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// 🔹 Hubinta xiriirka Database-ka (Waxaan isticmaalaynaa pool.query si aan u hubino)
+// 🔹 Hubinta xiriirka Database-ka
 pool.query('SELECT NOW()')
     .then(() => console.log('✅ Database-ku wuu ku xirmay si guul leh!'))
     .catch(err => console.error('❌ Khalad ayaa dhacay xiriirka database-ka:', err.stack));
