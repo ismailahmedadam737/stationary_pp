@@ -1,5 +1,8 @@
 const Customer = require('../models/customerModel');
 
+// Function-ka hubinta inuu yahay qoraal (text)
+const isOnlyLetters = (str) => /^[a-zA-Z\s]+$/.test(str);
+
 const getCustomers = async (req, res) => {
     try {
         const customers = await Customer.getCustomers();
@@ -14,19 +17,23 @@ const addCustomer = async (req, res) => {
     try {
         const { name, phone, district, neighborhood } = req.body;
         
-        // Hubinta in xogta muhiimka ah ay jirto
-        if (!name || !phone) {
-            return res.status(400).json({ message: 'Name and phone are required' });
+        // Validation: Hubinta in magaca aanu ahayn lambaro
+        if (!name || !isOnlyLetters(name)) {
+            return res.status(400).json({ 
+                message: 'Magaca waa inuu ahaadaa xarfo oo kaliya (xarfo), lambaro lama oggola.' 
+            });
+        }
+
+        if (!phone) {
+            return res.status(400).json({ message: 'Phone is required' });
         }
 
         console.log("📥 Xogta la helay:", { name, phone, district, neighborhood });
         
         const newCustomer = await Customer.createCustomer(name, phone, district, neighborhood);
         
-        // 201 waa koodhka rasmiga ah ee macnaheedu yahay "Waa la abuuray"
         res.status(201).json(newCustomer);
     } catch (err) {
-        // Halkan waxaan ku arki doonaa khaladka rasmiga ah ee Render logs
         console.error("❌ QALADKA addCustomer (Database):", err.message);
         res.status(500).json({ 
             error: "Database error", 
@@ -39,6 +46,13 @@ const editCustomer = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, phone, district, neighborhood } = req.body;
+        
+        // Validation: Hubinta in magaca la cusboonaysiinayo aanu ahayn lambaro
+        if (name && !isOnlyLetters(name)) {
+            return res.status(400).json({ 
+                message: "Magaca waa inuu ahaadaa xarfo oo kaliya." 
+            });
+        }
         
         const updatedCustomer = await Customer.updateCustomer(id, name, phone, district, neighborhood);
         
