@@ -2,8 +2,9 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Waxaan ka keenaynaa pool-ka faylka config/db.js
-const pool = require('./src/config/db');
+// Waxaan soo dhoofinaynaa pool-ka si aan u hubinno inuu xiran yahay, 
+// laakiin waxaan isticmaalaynaa habka saxda ah ee xiriirka
+const pool = require('./src/config/db'); 
 
 const app = express();
 
@@ -15,9 +16,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// 🔹 Database Connection Check
-pool.connect()
-    .then(() => console.log('✅ Neon Database-kii wuu ku xirmay si guul leh!'))
+// 🔹 Hubinta xiriirka Database-ka (Waxaan isticmaalaynaa pool.query si aan u hubino)
+pool.query('SELECT NOW()')
+    .then(() => console.log('✅ Database-ku wuu ku xirmay si guul leh!'))
     .catch(err => console.error('❌ Khalad ayaa dhacay xiriirka database-ka:', err.stack));
 
 // 🔹 Import Routes
@@ -45,7 +46,7 @@ app.get('/', (req, res) => {
     res.send('Stationary API Working ✅');
 });
 
-// 🔹 Global Error Handler (Waxay ka hortagtaa in server-ku dhaco marka khalad dhaco)
+// 🔹 Global Error Handler
 app.use((err, req, res, next) => {
     console.error("❌ Global Error Handler:", err.stack);
     res.status(500).json({ error: "Something went wrong on the server!" });
