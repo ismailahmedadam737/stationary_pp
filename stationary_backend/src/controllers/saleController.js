@@ -2,7 +2,7 @@ const ProductSale = require('../models/saleModel');
 
 const getSales = async (req, res) => {
     try {
-        const sales = await ProductSale.getAllSales();
+        const sales = await ProductSale.getAllSales(); // Hadda wuu helayaa function-kan
         res.status(200).json({ success: true, data: sales });
     } catch (error) {
         console.error("GET SALES ERROR:", error);
