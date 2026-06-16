@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 // ⬇️ ADEEGGA IIBKA BUUGAAGTA (PRODUCT SALES API SERVICE) ⬇️
 class ProductSalesApiService {
-  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/product_sales";
+  static const String baseUrl = "https://stationary-backend-6fh1.onrender.com/api/sales";
 
   // Tikitka iibka oo dhan ka soo akhri Database-ka
   static Future<List<Map<String, dynamic>>> getSales() async {
