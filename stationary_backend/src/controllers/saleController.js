@@ -15,25 +15,31 @@ const createSale = async (req, res) => {
     console.log("📥 Request Body-ga soo gaaray:", JSON.stringify(req.body, null, 2));
     
     try {
-        const { book_title, qty, price, discount, debt, invoice_no } = req.body;
+        // Waxaan ku darnay 'total' maadaama uu Database-kaaga leeyahay
+        const { book_title, qty, price, discount, debt, invoice_no, total } = req.body;
         
-        // 2. Hubinta xogta
-        if (!book_title || !qty || !price || !invoice_no) {
+        // 2. Hubinta xogta (Waxaan ku darnay 'total' si aysan u noqon null)
+        if (!book_title || !qty || !price || !invoice_no || total === undefined) {
             console.warn("⚠️ Xogta oo maqan:", req.body);
-            return res.status(400).json({ success: false, message: 'Fadlan xogta soo dhammaystir' });
+            return res.status(400).json({ success: false, message: 'Fadlan xogta soo dhammaystir (qty, price, total, iwm)' });
         }
 
-        const newSale = await Sale.createSale({ book_title, qty, price, discount, debt, invoice_no });
+        // 3. U gudbinta Model-ka
+        const newSale = await Sale.createSale({ 
+            book_title, 
+            qty, 
+            price, 
+            discount, 
+            debt, 
+            invoice_no, 
+            total // Halkan ayaan ku darnay
+        });
+
         console.log("✅ Iibka waxaa guul lagu kaydiyay:", newSale);
-        
         res.status(201).json({ success: true, data: newSale });
+
     } catch (error) {
-        // 3. Halkan waa meesha ay ku qormayso cilada dhabta ah ee database-ka
         console.error("🚨 DATABASE ERROR (Create Sale):", error);
-        console.error("🚨 Error Name:", error.name);
-        console.error("🚨 Error Message:", error.message);
-        console.error("🚨 Error Detail (Haddii uu jiro):", error.detail);
-        
         res.status(500).json({ 
             success: false, 
             message: "Server error saving sale", 
@@ -46,6 +52,7 @@ const bulkDeleteSales = async (req, res) => {
     try {
         const deletedCount = await Sale.deleteOldSales();
         res.status(200).json({ success: true, message: `Waxaa tirtiray ${deletedCount} iib` });
+        
     } catch (error) {
         console.error("❌ Controller Delete Sales Error:", error.message);
         res.status(500).json({ success: false, message: "Server error deleting sales" });
